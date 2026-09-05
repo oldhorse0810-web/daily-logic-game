@@ -2,276 +2,115 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️ 每日 AI 終極推理遊戲盒</title>
+    <title>🕵️ 每日推理遊戲盒</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
-            background-color: #1a1a20;
-            color: #f5f5f7;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background-color: #242430;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-            max-width: 600px;
-            width: 100%;
-        }
-        h1 {
-            text-align: center;
-            color: #ff9f43;
-            margin-top: 0;
-            font-size: 26px;
-            letter-spacing: 1px;
-        }
-        .score-board {
-            display: flex;
-            justify-content: space-around;
-            background: #17171e;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            border: 1px solid #3d3d4d;
-        }
-        .score-val { color: #ffca28; font-weight: bold; }
-        .day-info {
-            text-align: center;
-            font-weight: bold;
-            color: #00d2d3;
-            margin-bottom: 20px;
-            background: #2f2f42;
-            padding: 10px;
-            border-radius: 6px;
-        }
-        .hint {
-            background-color: #38384a;
-            padding: 15px;
-            border-left: 4px solid #ff9f43;
-            border-radius: 4px;
-            font-size: 15px;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-        .hint.hell { border-left-color: #ff4757; background-color: #3d242b; }
-        .soup-text {
-            background: #1c1c24;
-            padding: 20px;
-            border-radius: 8px;
-            font-size: 17px;
-            line-height: 1.7;
-            margin-bottom: 20px;
-            border: 1px dashed #ff4757;
-            color: #ffcccc;
-        }
-        .statements { margin-bottom: 25px; }
-        .statement-item {
-            background: #2d2d3d;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border-left: 3px solid #54a0ff;
-            font-size: 16px;
-        }
-        .statement-item strong { color: #54a0ff; }
-        .options-title { font-weight: bold; margin-bottom: 10px; color: #a4b0be; }
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        button.btn-option {
-            background-color: #48dbfb;
-            color: #1e1e24;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        button.btn-option:hover { background-color: #0abde3; transform: translateY(-2px); }
-        button.btn-option.hell-btn { background-color: #ff6b6b; color: white; }
-        button.btn-option.hell-btn:hover { background-color: #ff4757; }
-        
-        .qa-list { margin-bottom: 20px; }
-        .qa-item {
-            background: #2d2d3d;
-            padding: 10px 15px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            justify-content: space-between;
-        }
-        .qa-item:hover { background: #38384e; }
-        .qa-ans { font-weight: bold; color: #ff9f43; }
-        
-        .result {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 6px;
-            display: none;
-            line-height: 1.7;
-        }
-        .success { background-color: #10ac84; color: white; }
-        .fail { background-color: #ee5253; color: white; }
-        .soup-reveal { background-color: #2f3542; color: #ffca28; border: 2px solid #ffca28; }
-        
-        .action-buttons { display: flex; gap: 10px; margin-top: 15px; }
-        .restart-btn {
-            flex: 2; background-color: #ff9f43; color: white; border: none;
-            padding: 14px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;
-        }
-        .reset-score-btn {
-            flex: 1; background-color: #57606f; color: white; border: none;
-            padding: 14px; border-radius: 6px; font-size: 14px; cursor: pointer;
-        }
+        body { background-color: #1a1a20; color: #f5f5f7; font-family: sans-serif; padding: 20px; text-align: center; }
+        .box { background-color: #242430; max-width: 500px; margin: 20px auto; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .btn { background-color: #ff9f43; color: #1a1a20; border: none; padding: 12px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; margin: 5px; font-size: 16px; }
+        .btn:hover { background-color: #ffb366; }
+        .rescue-btn { background-color: #ee5253; color: white; padding: 8px 15px; font-size: 13px; }
+        .q-item { background: #2d2d3d; padding: 10px; margin: 10px 0; border-radius: 6px; cursor: pointer; border-left: 4px solid #48dbfb; text-align: left; }
+        .ans-text { float: right; color: #ff9f43; font-weight: bold; }
+        .txt { font-size: 18px; line-height: 1.6; background: #1c1c24; padding: 15px; border-radius: 6px; border: 1px dashed #ff4757; margin-bottom: 20px; text-align: left; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🕵️ 每日 AI 終極推理遊戲盒</h1>
-    
-    <div class="score-board">
-        <div>總挑戰次數: <span id="totalGames" class="score-val">0</span></div>
-        <div>最高連勝紀錄: <span id="maxStreak" class="score-val">0</span>🔥</div>
-        <div>當前得分: <span id="currentScore" class="score-val">0</span></div>
+    <!-- 💥 萬能強制救援按鈕：如果畫面卡住，點這個絕對能開！ -->
+    <button class="btn rescue-btn" onclick="forceLoadSoup()">點此手動強制載入遊戲 (若畫面卡住請點我)</button>
+
+    <div class="box">
+        <h1>🕵️ 每日推理遊戲盒</h1>
+        <h3 id="dayText">載入中...</h3>
+        <p id="hintText">請稍候...</p>
+        
+        <div id="mainContent">
+            <!-- 這裡會顯示海龜湯或邏輯題 -->
+        </div>
+
+        <h4 id="actionTitle">請點擊下方查看線索：</h4>
+        <div id="btnArea">
+            <!-- 這裡會顯示選項按鈕 -->
+        </div>
+
+        <div id="resultText" style="margin-top:20px; padding:15px; border-radius:6px; font-weight:bold; background:#38384a; display:none;"></div>
     </div>
-
-    <div class="day-info" id="dayInfo">正在加載今日主題...</div>
-    <div class="hint" id="gameHint">提示載入中...</div>
-    
-    <div id="gameContent"></div>
-
-    <div class="options-title" id="optionsTitle">請進行推理選擇：</div>
-    <div class="options-grid" id="optionsContainer"></div>
-
-    <div class="result" id="resultBox"></div>
-    
-    <div class="action-buttons">
-        <button class="restart-btn" onclick="initGame()" style="display:none;" id="restartBtn">換下一題挑戰</button>
-        <button class="reset-score-btn" onclick="resetScore()" id="resetBtn">重設分數</button>
-    </div>
-</div>
 
 <script>
-var allSuspects = ["阿明", "小華", "老張", "大雄", "靜香", "胖虎", "小夫"];
-var weekDays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+// 核心簡易劇本庫
+var soupItem = {
+    title: "不亮的光芒",
+    soup: "深夜，小川被急促敲門聲驚醒。透過貓眼往外看，門外空無一人，只有走廊聲控燈一閃一閃。小川鬆了一口氣準備回房，卻突然臉色慘白癱坐在地——因為他意識到，自己已經出不去了。",
+    questions: [
+        { q: "小川出不去，是因為門被反鎖了嗎？", a: "❌ 不是" },
+        { q: "門外的走廊和聲控燈是真實的嗎？", a: "❌ 不是（關鍵！）" },
+        { q: "危險其實已經在房間裡面了嗎？", a: "⭕ 是的（驚悚！）" },
+        { q: "小川家此時其實停電了對嗎？", a: "⭕ 是的" }
+    ],
+    truth: "【驚悚真相】殺手早已潛入小川家躲在衣櫃。殺手切斷屋內總電源，並在門外貓眼貼了一張「走廊照片」，用手電筒在後面製造閃爍燈光並敲門。小川準備回房時突然想到：既然家裡因斷電導致魚缸停了，為何貓眼看出去走廊燈還亮著？此時，他身後的衣櫃門緩慢地打開了..."
+};
 
-var soupLibrary = [
-    {
-        title: "不亮的光芒",
-        soup: "深夜，小川被急促敲門聲驚醒。透過貓眼往外看，門外空無一人，走廊聲控燈一閃一閃。小川鬆了一口氣準備回房，卻突然臉色慘白癱坐在地——因為他意識到，自己已經出不去了。",
-        questions: [
-            { q: "小川出不去，是因為門被反鎖了嗎？", a: "❌ 不是" },
-            { q: "門外的走廊和聲控燈是真實的嗎？", a: "❌ 不是（關鍵！）" },
-            { q: "危險其實已經在房間裡面了嗎？", a: "⭕ 是的（驚悚！）" },
-            { q: "小川家此時其實停電了對嗎？", a: "⭕ 是的" }
-        ],
-        truth: "【驚悚真相】殺手早已潛入小川家躲在衣櫃。殺手切斷屋內總電源，並在門外貓眼貼了一張「走廊照片」，用手電筒在後面製造閃爍燈光並敲門。小川準備回房時突然想到：既然家裡因斷電導致魚缸停了，為何貓眼看出去走廊燈還亮著？此時，他身後的衣櫃門緩慢地打開了..."
-    },
-    {
-        title: "消失的盲道",
-        soup: "一場大雨過後，小明看著窗外乾淨的街道，突然崩潰痛哭，因為他知道自己再也等不到回家的末班車了。",
-        questions: [
-            { q: "小明哭是因為公車因為大雨停駛了嗎？", a: "❌ 不是" },
-            { q: "小明是用「眼睛」看到窗外的嗎？", a: "❌ 不是（他是盲人！）" },
-            { q: "街道變乾淨這件事非常關鍵嗎？", a: "⭕ 是的" },
-            { q: "末班車指的是火車或公車嗎？", a: "⭕ 是的" }
-        ],
-        truth: "【悲傷真相】小明是一名全盲的流浪漢，靠摸索路邊凸出的「盲道磚」前往車站搭車回家。昨晚暴雨引發泥石流沖毀了路面，清潔隊在大雨後將街道清洗得一塵不染，卻也徹底移除了老舊損壞的盲道磚。小明伸手摸不到盲道，知道自己徹底迷路，再也找不到回家的車了..."
-    },
-    {
-        title: "致命的美味",
-        soup: "男子在一家餐館點了一碗「海龜湯」，他喝了一口之後，臉色大變，走出餐館後便跳河自盡了。請問為什麼？",
-        questions: [
-            { q: "這碗海龜湯裡有毒嗎？", a: "❌ 沒有" },
-            { q: "男子以前喝過「真正的」海龜湯嗎？", a: "❌ 沒有（這是他第一次喝真的）" },
-            { q: "男子自殺與他的過去或家人有關嗎？", a: "⭕ 是的" },
-            { q: "他以前吃過某種肉，當時被騙是海龜湯嗎？", a: "⭕ 是的（核心關鍵）" }
-        ],
-        truth: "【恐怖真相】男子曾和多年好友在荒島求生。當時男子重病瀕死，朋友端來一碗湯說是「海龜湯」救活了他，但朋友隨後卻虛弱死去了。多年後男子在店裡點了真正的海龜湯，發現味道完全不同，他瞬間明白：當年朋友是割下「自己的肉」煮湯救活他。男子崩潰，愧疚自責而投河自盡。"
-    }
-];
-
-var currentGameType = ""; 
-var gameData = { answerTarget: "", soupIndex: 0 };
-var hasAnswered = false;
-
-var score = parseInt(localStorage.getItem('box_score')) || 0;
-var totalGames = parseInt(localStorage.getItem('box_total')) || 0;
-var maxStreak = parseInt(localStorage.getItem('box_streak')) || 0;
-var currentStreak = parseInt(localStorage.getItem('box_current_streak')) || 0;
-
-function updateScoreBoard() {
-    document.getElementById("currentScore").innerText = score;
-    document.getElementById("totalGames").innerText = totalGames;
-    document.getElementById("maxStreak").innerText = maxStreak;
-}
-
-function resetScore() {
-    if(confirm("確定要重設所有數據嗎？")) {
-        score = 0; totalGames = 0; maxStreak = 0; currentStreak = 0;
-        localStorage.clear();
-        updateScoreBoard();
-        initGame();
-    }
-}
-
-function initGame() {
-    updateScoreBoard();
-    hasAnswered = false;
-    var d = new Date();
-    var dayOfWeek = d.getDay(); 
+function startNormalGame() {
+    document.getElementById("dayText").innerText = "📅 今日任務：⭐ 找出誰在說真話";
+    document.getElementById("hintText").innerText = "提示：這三個人之中，只有一個人說的是真話，其餘兩人都說謊！";
     
-    var htmlContent = "";
-    var htmlOptions = "";
-    var count = 5;
+    var html = '<div class="txt">' +
+               '👤 <strong>阿明</strong> 說：「小華在撒謊！」<br><br>' +
+               '👤 <strong>小華</strong> 說：「老張說的是真話。」<br><br>' +
+               '👤 <strong>老張</strong> 說：「阿明和大雄都在撒謊！」' +
+               '</div>';
+    document.getElementById("mainContent").innerHTML = html;
+    document.getElementById("actionTitle").innerText = "請指認誰說了【真話】：";
+    
+    var btns = '<button class="btn" onclick="showAns(false)">阿明</button>' +
+               '<button class="btn" onclick="showAns(true)">小華</button>' +
+               '<button class="btn" onclick="showAns(false)">老張</button>';
+    document.getElementById("btnArea").innerHTML = btns;
+}
 
-    if (dayOfWeek === 1 || dayOfWeek === 2) {
-        currentGameType = "truth"; 
-        count = (dayOfWeek === 1) ? 3 : 4;
-    } else if (dayOfWeek >= 3 && dayOfWeek <= 5) {
-        currentGameType = "thief"; 
-        count = (dayOfWeek === 3) ? 4 : 5;
-    } else {
-        currentGameType = "soup";  
+function forceLoadSoup() {
+    document.getElementById("dayText").innerText = "📅 週末限定：👿 驚悚海龜湯地獄";
+    document.getElementById("hintText").innerText = "提示：請點擊下方的「關鍵提問」獲取線索，推理出全貌後點擊指認真相通關！";
+    
+    var html = '<div class="txt"><strong>【湯麵】</strong><br>' + soupItem.soup + '</div>';
+    for (var i = 0; i < soupItem.questions.length; i++) {
+        html += '<div class="q-item" onclick="document.getElementById(\'ans-\'+' + i + ').style.display=\'inline\'">' +
+                '❓ ' + soupItem.questions[i].q + 
+                '<span class="ans-text" id="ans-' + i + '" style="display:none;"> ' + soupItem.questions[i].a + '</span>' +
+                '</div>';
     }
+    document.getElementById("mainContent").innerHTML = html;
+    document.getElementById("actionTitle").innerText = "當你理清邏輯後：";
+    document.getElementById("btnArea").innerHTML = '<button class="btn" style="background:#ff6b6b; color:white; width:100%;" onclick="showSoupTruth()">🚨 我已推理完成，指認真相！</button>';
+}
 
-    if (currentGameType === "truth") {
-        document.getElementById("dayInfo").innerText = "📅 今天是：" + weekDays[dayOfWeek] + "（形態：⭐ 誰說真話）";
-        document.getElementById("gameHint").className = "hint";
-        document.getElementById("gameHint").innerText = "💡 提示：這裡有 " + count + " 個人，其中【只有 1 個人】說了真話，其餘都在撒謊。請用邏輯找出誠實的人！";
-        document.getElementById("optionsTitle").innerText = "請選擇誰說了【真話】：";
+function showAns(isCorrect) {
+    var r = document.getElementById("resultText");
+    r.style.display = "block";
+    if(isCorrect) {
+        r.innerHTML = "🎉 答對了！你太厲害了！";
+        r.style.background = "#10ac84";
+    } else {
+        r.innerHTML = "❌ 答錯了！他的邏輯不對，再想想看。";
+        r.style.background = "#ee5253";
+    }
+}
 
-        var shuffled = allSuspects.slice().sort(function() { return 0.5 - Math.random(); });
-        var currentSuspects = shuffled.slice(0, count);
-        var honestPerson = currentSuspects[Math.floor(Math.random() * count)];
-        gameData.answerTarget = honestPerson;
+function showSoupTruth() {
+    var r = document.getElementById("resultText");
+    r.style.display = "block";
+    r.style.background = "#2f3542";
+    r.style.color = "#ffca28";
+    r.innerHTML = "🎉 <strong>挑戰成功！真相大白！</strong><br><br>" + soupItem.truth;
+}
 
-        for (var i = 0; i < currentSuspects.length; i++) {
-            var name = currentSuspects[i];
-            var isHonest = (name === honestPerson);
-            
-            var others = [];
-            for (var j = 0; j < currentSuspects.length; j++) {
-                if (currentSuspects[j] !== name) others.push(currentSuspects[j]);
-            }
-            
-            var target = others[Math.floor(Math.random() * others.length)];
-            var targetIsHonest = (target === honestPerson);
+// 自動根據星期幾載入
+var day = new Date().getDay();
+if (day === 0 || day === 6) {
+    forceLoadSoup(); // 週六日直接啟動海龜湯
+} else {
+    startNormalGame(); // 平日啟動邏輯題
+}
+</script>
+</body>
+</html>
