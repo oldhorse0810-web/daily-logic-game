@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕵️ 每日 AI 邏輯推理小遊戲</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
+            background-color: #1e1e24;
+            color: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #2a2a35;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #ff9f43;
+            margin-top: 0;
+            font-size: 24px;
+        }
+        .day-info {
+            text-align: center;
+            font-weight: bold;
+            color: #00d2d3;
+            margin-bottom: 20px;
+            background: #343444;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .hint {
+            background-color: #3d3d4d;
+            padding: 12px;
+            border-left: 4px solid #ff9f43;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .statements {
+            margin-bottom: 25px;
+        }
+        .statement-item {
+            background: #353545;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #54a0ff;
+            font-size: 16px;
+        }
+        .statement-item strong {
+            color: #54a0ff;
+        }
+        .options-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #a4b0be;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button.btn-option {
+            background-color: #48dbfb;
+            color: #1e1e24;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button.btn-option:hover {
+            background-color: #0abde3;
+            transform: translateY(-2px);
+        }
+        .result {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        .success { background-color: #10ac84; color: white; }
+        .fail { background-color: #ee5253; color: white; }
+        .restart-btn {
+            display: block;
+            width: 100%;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🕵️ 每日 AI 邏輯推理小遊戲</h1>
+    <div class="day-info" id="dayInfo">今天是星期幾？</div>
+    <div class="hint" id="gameHint">提示載入中...</div>
+    
+    <div class="statements" id="statementsContainer">
+        <!-- 證詞會生成在這裡 -->
+    </div>
+
+    <div class="options-title">請選擇誰說了【真話】：</div>
+    <div class="options-grid" id="optionsContainer">
+        <!-- 按鈕會生成在這裡 -->
+    </div>
+
+    <div class="result" id="resultBox"></div>
+    <button class="restart-btn" onclick="initGame()" style="display:none;" id="restartBtn">再挑戰一題</button>
+</div>
+
+<script>
+const allSuspects = ["阿明", "小華", "老張", "大雄", "靜香", "胖虎", "小夫"];
+const weekDays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+let gameData = { roles: {}, suspects: [] };
+
+function initGame() {
+    const d = new Date();
+    const dayOfWeek = d.getDay(); // 0 是週日, 1-6 是週一到六
+    
+    // 依據星期設定難度
+    let count = 5;       // 嫌疑犯人數
+    let honestCount = 1; // 真話人數
+    
+    if (dayOfWeek === 1) { // 週一
+        count = 3; honestCount = 1;
+    } else if (dayOfWeek === 2 || dayOfWeek === 3) { // 週二、三
+        count = 4; honestCount = 1;
+    } else if (dayOfWeek === 4 || dayOfWeek === 5) { // 週四、五
+        count = 5; honestCount = 1;
+    } else { // 週六、日（地獄模式：真話人數隨機 1~2 人）
+        count = 5;
+        honestCount = Math.floor(Math.random() * 2) + 1; 
+    }
+
+    document.getElementById("dayInfo").innerText = `📅 今天是：${weekDays[dayOfWeek]}（難度：${getDifficultyText(dayOfWeek)}）`;
+    document.getElementById("gameHint").innerText = `💡 提示：本題共有 ${count} 位嫌疑犯，其中【剛好有 ${honestCount} 個人】說了真話，其餘的人都在撒謊。請找出說真話的人！`;
+
+    // 洗牌並取出人數
+    let shuffled = [...allSuspects].sort(() => 0.5 - Math.random());
+    let currentSuspects = shuffled.slice(0, count);
+    
+    // 分配身份
+    let roles = {};
+    currentSuspects.forEach(s => roles[s] = false);
+    
+    let honestAssigned = 0;
+    while(honestAssigned < honestCount) {
+        let randomSuspect = currentSuspects[Math.floor(Math.random() * count)];
+        if(!roles[randomSuspect]) {
+            roles[randomSuspect] = true;
+            honestAssigned++;
+        }
+    }
+
+    gameData = { roles: roles, suspects: currentSuspects };
+
+    // 生成證詞
+    let htmlStatements = "";
+    currentSuspects.forEach(name => {
+        let isHonest = roles[name];
+        let others = currentSuspects.filter(s => s !== name);
+        let target = others[Math.floor(Math.random() * others.length)];
+        let targetIsHonest = roles[target];
+        
+        let speech = "";
+        if (isHonest) {
+            speech = targetIsHonest ? `「${target} 說的是真話。」` : `「${target} 在撒謊！」`;
+        } else {
+            speech = targetIsHonest ? `「${target} 絕對在撒謊！」` : `「我相信 ${target}，他/她說的是真話。」`;
+        }
+        
+        htmlStatements += `<div class="statement-item">👤 <strong>${name}</strong> 說：${speech}</div>`;
+    });
+
+    document.getElementById("statementsContainer").innerHTML = htmlStatements;
+
+    // 生成答題按鈕
+    let htmlOptions = "";
+    currentSuspects.forEach(name => {
+        htmlOptions += `<button class="btn-option" onclick="checkAnswer('${name}')">${name}</button>`;
+    });
+    document.getElementById("optionsContainer").innerHTML = htmlOptions;
+    
+    // 重設狀態
+    document.getElementById("resultBox").style.display = "none";
+    document.getElementById("restartBtn").style.display = "none";
+}
+
+function getDifficultyText(day) {
+    if(day === 1) return "⭐ 輕鬆小品";
+    if(day === 2 || day === 3) return "⭐⭐ 普通推理";
+    if(day === 4 || day === 5) return "⭐⭐⭐ 高手過招";
+    return "🔥 週末地獄模式";
+}
+
+function checkAnswer(name) {
+    const resultBox = document.getElementById("resultBox");
+    resultBox.style.display = "block";
+    
+    if (gameData.roles[name] === true) {
+        resultBox.className = "result success";
+        resultBox.innerText = `🎉 答對了！【${name}】確實說了真話！你太厲害了！`;
+    } else {
+        resultBox.className = "result fail";
+        resultBox.innerText = `❌ 答錯了！【${name}】在撒謊！再仔細推敲看看吧。`;
+    }
+    document.getElementById("restartBtn").style.display = "block";
+}
+
+// 啟動遊戲
+initGame();
+</script>
+
+</body>
+</html>
