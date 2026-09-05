@@ -103,7 +103,6 @@
         button.btn-option.hell-btn { background-color: #ff6b6b; color: white; }
         button.btn-option.hell-btn:hover { background-color: #ff4757; }
         
-        /* 海龜湯問答樣式 */
         .qa-list { margin-bottom: 20px; }
         .qa-item {
             background: #2d2d3d;
@@ -157,7 +156,6 @@
     <div class="day-info" id="dayInfo">正在加載今日主題...</div>
     <div class="hint" id="gameHint">提示載入中...</div>
     
-    <!-- 遊戲主要內容區域 -->
     <div id="gameContent"></div>
 
     <div class="options-title" id="optionsTitle">請進行推理選擇：</div>
@@ -175,7 +173,6 @@
 const allSuspects = ["阿明", "小華", "老張", "大雄", "靜香", "胖虎", "小夫"];
 const weekDays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
 
-// 經典恐怖海龜湯劇本庫（週末輪流隨機出題）
 const soupLibrary = [
     {
         title: "不亮的光芒",
@@ -252,7 +249,7 @@ const soupLibrary = [
     }
 ];
 
-let currentGameType = ""; // "truth", "thief", "soup"
+let currentGameType = ""; 
 let gameData = { answerTarget: "", soupIndex: 0 };
 let hasAnswered = false;
 
@@ -268,51 +265,3 @@ function updateScoreBoard() {
 }
 
 function resetScore() {
-    if(confirm("確定要重設所有數據嗎？")) {
-        score = 0; totalGames = 0; maxStreak = 0; currentStreak = 0;
-        localStorage.clear();
-        updateScoreBoard();
-        initGame();
-    }
-}
-
-function initGame() {
-    updateScoreBoard();
-    hasAnswered = false;
-    const d = new Date();
-    const dayOfWeek = d.getDay(); 
-    
-    let htmlContent = "";
-    let htmlOptions = "";
-    let count = 5;
-
-    // 1. 根據星期決定遊戲型態
-    if (dayOfWeek === 1 || dayOfWeek === 2) {
-        currentGameType = "truth"; // 找真話
-        count = (dayOfWeek === 1) ? 3 : 4;
-    } else if (dayOfWeek >= 3 && dayOfWeek <= 5) {
-        currentGameType = "thief"; // 抓小偷
-        count = (dayOfWeek === 3) ? 4 : 5;
-    } else {
-        currentGameType = "soup";  // 週末海龜湯地獄
-    }
-
-    // 2. 渲染邏輯
-    if (currentGameType === "truth") {
-        document.getElementById("dayInfo").innerText = `📅 今天是：${weekDays[dayOfWeek]}（形態：⭐ 誰說真話）`;
-        document.getElementById("gameHint").innerText = `💡 提示：這裡有 ${count} 個人，其中【只有 1 個人】說了真話，其餘都在撒謊。請用邏輯找出誠實的人！`;
-        document.getElementById("optionsTitle").innerText = "請選擇誰說了【真話】：";
-
-        let shuffled = [...allSuspects].sort(() => 0.5 - Math.random());
-        let currentSuspects = shuffled.slice(0, count);
-        let honestPerson = currentSuspects[Math.floor(Math.random() * count)];
-        gameData.answerTarget = honestPerson;
-
-        currentSuspects.forEach(name => {
-            let isHonest = (name === honestPerson);
-            let others = currentSuspects.filter(s => s !== name);
-            let target = others[Math.floor(Math.random() * others.length)];
-            let targetIsHonest = (target === honestPerson);
-            let speech = isHonest ? (targetIsHonest ? `「${target} 說的是真話。」` : `「${target} 在撒謊！」`) : (targetIsHonest ? `「${target} 絕對在撒謊！」` : `「我相信 ${target}，他/她說真話。」`);
-            
-            htmlContent += `<div class="statement-item">👤 <strong>${name}</strong> 說：${speech}</div>`;
