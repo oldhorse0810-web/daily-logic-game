@@ -176,7 +176,7 @@ var weekDays = ["星期日", "星期一", "星期二", "星期三", "星期四",
 var soupLibrary = [
     {
         title: "不亮的光芒",
-        soup: "深夜，小川被急促敲門聲驚醒。透過貓眼往外看，門外空無一人，只有走廊聲控燈一閃一閃。小川鬆了一口氣準備回房，卻突然臉色慘白癱坐在地——因為他意識到，自己已經出不去了。",
+        soup: "深夜，小川被急促敲門聲驚醒。透過貓眼往外看，門外空無一人，走廊聲控燈一閃一閃。小川鬆了一口氣準備回房，卻突然臉色慘白癱坐在地——因為他意識到，自己已經出不去了。",
         questions: [
             { q: "小川出不去，是因為門被反鎖了嗎？", a: "❌ 不是" },
             { q: "門外的走廊和聲控燈是真實的嗎？", a: "❌ 不是（關鍵！）" },
@@ -234,40 +234,44 @@ function resetScore() {
 }
 
 function initGame() {
-    try {
-        updateScoreBoard();
-        hasAnswered = false;
-        var d = new Date();
-        var dayOfWeek = d.getDay(); 
-        
-        var htmlContent = "";
-        var htmlOptions = "";
-        var count = 5;
+    updateScoreBoard();
+    hasAnswered = false;
+    var d = new Date();
+    var dayOfWeek = d.getDay(); 
+    
+    var htmlContent = "";
+    var htmlOptions = "";
+    var count = 5;
 
-        if (dayOfWeek === 1 || dayOfWeek === 2) {
-            currentGameType = "truth"; 
-            count = (dayOfWeek === 1) ? 3 : 4;
-        } else if (dayOfWeek >= 3 && dayOfWeek <= 5) {
-            currentGameType = "thief"; 
-            count = (dayOfWeek === 3) ? 4 : 5;
-        } else {
-            currentGameType = "soup";  
-        }
+    if (dayOfWeek === 1 || dayOfWeek === 2) {
+        currentGameType = "truth"; 
+        count = (dayOfWeek === 1) ? 3 : 4;
+    } else if (dayOfWeek >= 3 && dayOfWeek <= 5) {
+        currentGameType = "thief"; 
+        count = (dayOfWeek === 3) ? 4 : 5;
+    } else {
+        currentGameType = "soup";  
+    }
 
-        if (currentGameType === "truth") {
-            document.getElementById("dayInfo").innerText = "📅 今天是：" + weekDays[dayOfWeek] + "（形態：⭐ 誰說真話）";
-            document.getElementById("gameHint").className = "hint";
-            document.getElementById("gameHint").innerText = "💡 提示：這裡有 " + count + " 個人，其中【只有 1 個人】說了真話，其餘都在撒謊。請用邏輯找出誠實的人！";
-            document.getElementById("optionsTitle").innerText = "請選擇誰說了【真話】：";
+    if (currentGameType === "truth") {
+        document.getElementById("dayInfo").innerText = "📅 今天是：" + weekDays[dayOfWeek] + "（形態：⭐ 誰說真話）";
+        document.getElementById("gameHint").className = "hint";
+        document.getElementById("gameHint").innerText = "💡 提示：這裡有 " + count + " 個人，其中【只有 1 個人】說了真話，其餘都在撒謊。請用邏輯找出誠實的人！";
+        document.getElementById("optionsTitle").innerText = "請選擇誰說了【真話】：";
 
-            var shuffled = allSuspects.slice().sort(function() { return 0.5 - Math.random(); });
-            var currentSuspects = shuffled.slice(0, count);
-            var honestPerson = currentSuspects[Math.floor(Math.random() * count)];
-            gameData.answerTarget = honestPerson;
+        var shuffled = allSuspects.slice().sort(function() { return 0.5 - Math.random(); });
+        var currentSuspects = shuffled.slice(0, count);
+        var honestPerson = currentSuspects[Math.floor(Math.random() * count)];
+        gameData.answerTarget = honestPerson;
 
-            currentSuspects.forEach(function(name) {
-                var isHonest = (name === honestPerson);
-                var others = currentSuspects.filter(function(s) { return s !== name; });
-                var target = others[Math.floor(Math.random() * others.length)];
-                var targetIsHonest = (target === honestPerson);
-                var speech = isHonest ? (targetIsHonest ? "「" + target + " 說的是真話。」" : "「" + target + " 在撒謊！」") : (targetIsHonest ? "「" + target + " 絕對在撒謊！」" : "「我相信 " + target + "，他/她說真話。」");
+        for (var i = 0; i < currentSuspects.length; i++) {
+            var name = currentSuspects[i];
+            var isHonest = (name === honestPerson);
+            
+            var others = [];
+            for (var j = 0; j < currentSuspects.length; j++) {
+                if (currentSuspects[j] !== name) others.push(currentSuspects[j]);
+            }
+            
+            var target = others[Math.floor(Math.random() * others.length)];
+            var targetIsHonest = (target === honestPerson);
