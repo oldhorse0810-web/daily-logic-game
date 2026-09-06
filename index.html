@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️ 每日 AI 終極推理遊戲盒</title>
+    <title>⚡ 硬核級！每日 AI 推理舒壓遊戲盒</title>
     <style>
         body {
             font-family: sans-serif, "Microsoft JhengHei";
-            background-color: #1a1a20;
-            color: #f5f5f7;
+            background-color: #0f0f12;
+            color: #e4e4e7;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -17,90 +17,216 @@
             padding: 20px;
         }
         .container {
-            background-color: #242430;
+            background-color: #1a1a22;
             padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-            max-width: 600px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            max-width: 520px;
             width: 100%;
+            text-align: center;
+            border: 1px solid #2e2e3e;
         }
-        h1 { text-align: center; color: #ff9f43; margin-top: 0; font-size: 26px; }
-        .day-info {
-            text-align: center; font-weight: bold; color: #ff4757; margin-bottom: 20px;
-            background: #3d242b; padding: 10px; border-radius: 6px;
+        h1 { color: #f43f5e; margin-top: 0; font-size: 24px; letter-spacing: 1px; }
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            background: #252538;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: bold;
+            border: 1px solid #3b3b4f;
         }
-        .hint {
-            background-color: #38384a; padding: 15px; border-left: 4px solid #ff4757;
-            border-radius: 4px; font-size: 15px; margin-bottom: 20px; line-height: 1.6;
+        .score-val { color: #facc15; }
+        .game-title {
+            font-size: 17px;
+            font-weight: bold;
+            color: #f43f5e;
+            margin-bottom: 15px;
+            background: #2d1c24;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #f43f5e;
         }
-        .soup-text {
-            background: #1c1c24; padding: 20px; border-radius: 8px;
-            font-size: 17px; line-height: 1.7; margin-bottom: 20px;
-            border: 1px dashed #ff4757; color: #ffcccc;
+        .game-box {
+            background: #141416;
+            padding: 20px;
+            border-radius: 12px;
+            min-height: 18px;
+            margin-bottom: 20px;
+            border: 1px dashed #4b5563;
         }
-        .options-title { font-weight: bold; margin-bottom: 10px; color: #a4b0be; }
-        .q-item {
-            background: #2d2d3d; padding: 12px 15px; margin-bottom: 8px;
-            border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between;
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: 0.1s;
         }
-        .q-item:hover { background: #38384e; border-left: 4px solid #ff9f43; }
-        .ans-text { font-weight: bold; color: #ff9f43; display: none; }
-        .btn-option {
-            background-color: #ff6b6b; color: white; border: none; padding: 14px;
-            border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;
-            width: 100%; margin-top: 15px;
+        .btn:hover { background-color: #2563eb; transform: translateY(-1px); }
+        .btn-danger { background-color: #ef4444; }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-share { background-color: #8b5cf6; width: 100%; margin-top: 15px; }
+        .btn-share:hover { background-color: #7c3aed; }
+        
+        .num-input {
+            padding: 12px; font-size: 16px; width: 120px; border-radius: 6px;
+            border: 1px solid #4b5563; background: #27273a; color: white; text-align: center;
+            letter-spacing: 2px; font-weight: bold;
         }
-        .btn-option:hover { background-color: #ff4757; }
-        .result {
-            text-align: center; font-size: 18px; font-weight: bold; margin-top: 20px;
-            padding: 20px; border-radius: 6px; display: none; line-height: 1.7;
-            background-color: #2f3542; color: #ffca28; border: 2px solid #ffca28;
+        .log-box {
+            max-height: 120px; overflow-y: auto; text-align: left; 
+            background: #1c1c24; padding: 10px; border-radius: 6px; font-size: 14px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🕵️ 每日 AI 終極推理遊戲盒</h1>
+    <h1>⚡ 硬核級！每日 AI 推理舒壓遊戲盒</h1>
     
-    <div class="day-info">📅 今日形態：👿 週末驚悚海龜湯地獄</div>
-    <div class="hint">🔥 點擊下方的「關鍵提問」獲取線索。當你推理出全貌後，請點擊下方的「指認真相」按鈕揭曉謎底並通關！</div>
-    
-    <!-- 100% 靜態網頁內容，不透過 JS 繪製，絕對不觸發安全封鎖 -->
-    <div class="soup-text">
-        <strong>【湯麵】</strong><br>
-        深夜，小川被急促敲門聲驚醒。透過貓眼往外看，門外空無一人，只有走廊聲控燈一閃一閃。小川鬆了一口氣準備回房，卻突然臉色慘白癱坐在地——因為他意識到，自己已經出不去了。
+    <div class="score-board">
+        <div>我的目前總積分: <span id="displayScore" class="score-val">0</span> 分</div>
     </div>
 
-    <div class="options-title">💬 點擊向 AI 進行關鍵提問（點擊可查看回答）：</div>
-    
-    <div class="q-item" onclick="document.getElementById('ans1').style.display='inline'; this.style.borderLeft='4px solid #ff4757';">
-        <span>❓ 小川出不去，是因為門被反鎖了嗎？</span>
-        <span class="ans-text" id="ans1">❌ 不是</span>
-    </div>
-    
-    <div class="q-item" onclick="document.getElementById('ans2').style.display='inline'; this.style.borderLeft='4px solid #ff4757';">
-        <span>❓ 門外的走廊和聲控燈是真實的嗎？</span>
-        <span class="ans-text" id="ans2">❌ 不是（關鍵！）</span>
-    </div>
-    
-    <div class="q-item" onclick="document.getElementById('ans3').style.display='inline'; this.style.borderLeft='4px solid #ff4757';">
-        <span>❓ 危險其實已經在房間裡面了嗎？</span>
-        <span class="ans-text" id="ans3">⭕ 是的（驚悚！）</span>
-    </div>
-    
-    <div class="q-item" onclick="document.getElementById('ans4').style.display='inline'; this.style.borderLeft='4px solid #ff4757';">
-        <span>❓ 小川家此時其實停電了對嗎？</span>
-        <span class="ans-text" id="ans4">⭕ 是的</span>
+    <!-- 🎮 週一、週二：極限腦力心算 -->
+    <div id="gameMonTue" style="display:none;">
+        <div class="game-title">📅 週一、二限定：【5秒極限色盲心算】</div>
+        <p>在倒數結束前，點擊正確的數學答案！</p>
+        <div class="game-box">
+            <h2 style="color: #60a5fa; font-size: 28px; margin: 10px 0;">23 + 48 = ?</h2>
+            <button class="btn" onclick="addHardScore(10, '🎉 心算正確！')">71</button>
+            <button class="btn" onclick="addHardScore(-10, '❌ 粗心算錯囉！')">69</button>
+            <button class="btn" onclick="addHardScore(-10, '❌ 差一點點！')">81</button>
+        </div>
     </div>
 
-    <button class="btn-option" onclick="document.getElementById('resultBox').style.display='block';">🚨 我已推理完成，指認真相！</button>
-
-    <div class="result" id="resultBox">
-        🎉 <strong>成功指認！地獄海龜湯挑戰成功！</strong><br><br>
-        【驚悚真相】殺手早已潛入小川家躲在衣櫃。殺手切斷屋內總電源，並在門外貓眼貼了一張「走廊照片」，用手電筒在後面製造閃爍燈光並敲門。小川準備回房時突然想到：既然家裡因斷電導致魚缸停了，為何貓眼看出去走廊燈還亮著？此時，他身後的衣櫃門緩慢地打開了...
+    <!-- 🎮 週三、週四：反向指令地獄 -->
+    <div id="gameWedThu" style="display:none;">
+        <div class="game-title">📅 週三、四限定：【反向指令神經地獄】</div>
+        <p style="color: #f87171; font-weight: bold;">🚨 當前魔王命令：【故意唱反調！請點相反方向】</p>
+        <div class="game-box">
+            <h3 style="font-size: 20px;">請指示：【往左】</h3>
+            <button class="btn btn-danger" onclick="addHardScore(-15, '❌ 慘了！你聽從了指令，應該要唱反調才對！')">⬅️ 點我往左</button>
+            <button class="btn btn-danger" onclick="addHardScore(15, '🎉 反骨成功！大腦神經反應正確！')">➡️ 點我往右</button>
+        </div>
     </div>
+
+    <!-- 🎮 週五、週六、週日：100% 靜態相容 0A0B 猜數字 -->
+    <div id="gameWeekend" style="display:none;">
+        <div class="game-title">📅 週末限定：【硬核邏輯 0A0B 猜數字】</div>
+        <p>神祕密碼是 4 個「不重複的數字」。請輸入 4 位數：</p>
+        <div class="game-box">
+            <input type="text" id="guessInput" class="num-input" maxlength="4" placeholder="例如4321">
+            <button class="btn" style="background:#10b981;" onclick="check0A0B()">指認密碼</button>
+            <h4 style="margin: 15px 0 5px 0; text-align: left; color:#a4b0be;">🕵️ 推理歷史紀錄：</h4>
+            <div class="log-box" id="logBox">
+                （尚未輸入任何猜測...）
+            </div>
+        </div>
+    </div>
+
+    <div id="resultText" style="margin-top:15px; padding:12px; border-radius:6px; font-weight:bold; background:#252538; display:none;"></div>
+
+    <button class="btn btn-share" onclick="shareToFriend()">✉️ 複製高分連結，發給朋友發起戰帖！</button>
 </div>
+
+<script>
+// 1. 安全分數接收器
+var urlParams = new URLSearchParams(window.location.search);
+var currentScore = parseInt(urlParams.get('score')) || 0;
+document.getElementById("displayScore").innerText = currentScore;
+
+// 2. 週末硬核 0A0B 答案固定為：4321
+var secretCode = "4321";
+
+// 自動判定星期幾切換區塊
+var currentDay = new Date().getDay(); // 0是週日
+
+if (currentDay === 1 || currentDay === 2) {
+    document.getElementById("gameMonTue").style.display = "block";
+} else if (currentDay === 3 || currentDay === 4) {
+    document.getElementById("gameWedThu").style.display = "block";
+} else {
+    document.getElementById("gameWeekend").style.display = "block";
+}
+
+// 通用加分機制
+function addHardScore(points, msg) {
+    currentScore += points;
+    if(currentScore < 0) currentScore = 0;
+    document.getElementById("displayScore").innerText = currentScore;
+    
+    var r = document.getElementById("resultText");
+    r.style.display = "block";
+    r.innerText = msg;
+    r.style.color = points > 0 ? "#4ade80" : "#f87171";
+}
+
+// 週末硬核 0A0B 邏輯運算（純數組比對，完全不涉及高風險 DOM 語法）
+function check0A0B() {
+    var input = document.getElementById("guessInput").value.trim();
+    var r = document.getElementById("resultText");
+    
+    if (input.length !== 4 || isNaN(input)) {
+        alert("請精確輸入 4 個純數字！");
+        return;
+    }
+    
+    var a = 0;
+    var b = 0;
+    
+    // 比對 0A0B
+    for (var i = 0; i < 4; i++) {
+        if (input.charAt(i) === secretCode.charAt(i)) {
+            a++;
+        } else if (secretCode.indexOf(input.charAt(i)) !== -1) {
+            b++;
+        }
+    }
+    
+    var logBox = document.getElementById("logBox");
+    if(logBox.innerText.indexOf("尚未輸入") !== -1) {
+        logBox.innerHTML = "";
+    }
+    
+    // 輸出到歷史紀錄
+    logBox.innerHTML += "<div>🤔 輸入 <strong>" + input + "</strong> ➜ 獲得 <strong>" + a + "A " + b + "B</strong></div>";
+    
+    if (a === 4) {
+        currentScore += 50; // 硬核解出直接送 50 分！
+        document.getElementById("displayScore").innerText = currentScore;
+        r.style.display = "block";
+        r.style.color = "#4ade80";
+        r.innerText = "🎉 太神了！你成功破解了最高難度密碼 4321！獲得 50 分！";
+    } else {
+        r.style.display = "block";
+        r.style.color = "#facc15";
+        r.innerText = "❌ 密碼指認失敗！目前為 " + a + "A " + b + "B，請根據提示繼續推理！";
+    }
+}
+
+// 邀請挑戰按鈕
+function shareToFriend() {
+    var baseUrl = window.location.href.split('?')[0];
+    var shareUrl = baseUrl + "?score=" + currentScore;
+    
+    var tempInput = document.createElement("input");
+    tempInput.value = shareUrl;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
+    
+    alert("🔗 戰帖複製成功！\n你的朋友點開連結時，會直接看到你挑戰累積的「 " + currentScore + " 分」紀錄！快去挑釁他們，看誰的大腦比較硬核吧！");
+}
+</script>
 
 </body>
 </html>
