@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ 硬核級！每日 AI 推理舒壓遊戲盒</title>
+    <title>⚡ 終極速破！每日 AI 三重腦力極限遊戲盒</title>
     <style>
         body {
             font-family: sans-serif, "Microsoft JhengHei";
-            background-color: #0f0f12;
+            background-color: #0d0d11;
             color: #e4e4e7;
             display: flex;
             justify-content: center;
@@ -17,63 +17,63 @@
             padding: 20px;
         }
         .container {
-            background-color: #1a1a22;
+            background-color: #161622;
             padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            max-width: 520px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            max-width: 540px;
             width: 100%;
             text-align: center;
-            border: 1px solid #2e2e3e;
+            border: 1px solid #3f222a;
         }
         h1 { color: #f43f5e; margin-top: 0; font-size: 24px; letter-spacing: 1px; }
         .score-board {
             display: flex;
             justify-content: space-around;
-            background: #252538;
+            background: #222235;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
             font-size: 15px;
             font-weight: bold;
-            border: 1px solid #3b3b4f;
+            border: 1px solid #373754;
         }
         .score-val { color: #facc15; }
+        .timer-text { color: #f43f5e; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
         .game-title {
             font-size: 17px;
             font-weight: bold;
             color: #f43f5e;
             margin-bottom: 15px;
-            background: #2d1c24;
+            background: #2a151b;
             padding: 10px;
             border-radius: 6px;
             border-left: 4px solid #f43f5e;
         }
         .game-box {
-            background: #141416;
-            padding: 20px;
+            background: #0f0f12;
+            padding: 25px;
             border-radius: 12px;
-            min-height: 18px;
             margin-bottom: 20px;
-            border: 1px dashed #4b5563;
+            border: 1px dashed #ef4444;
         }
         .btn {
-            background-color: #3b82f6;
+            background-color: #2563eb;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 14px 28px;
             font-size: 16px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            margin: 5px;
+            margin: 8px;
             transition: 0.1s;
         }
-        .btn:hover { background-color: #2563eb; transform: translateY(-1px); }
-        .btn-danger { background-color: #ef4444; }
-        .btn-danger:hover { background-color: #dc2626; }
-        .btn-share { background-color: #8b5cf6; width: 100%; margin-top: 15px; }
-        .btn-share:hover { background-color: #7c3aed; }
+        .btn:hover { background-color: #1d4ed8; transform: scale(1.03); }
+        .btn-danger { background-color: #dc2626; }
+        .btn-danger:hover { background-color: #b91c1c; }
+        .btn-share { background-color: #7c3aed; width: 100%; margin-top: 15px; }
+        .btn-share:hover { background-color: #6d28d9; }
         
         .num-input {
             padding: 12px; font-size: 16px; width: 140px; border-radius: 6px;
@@ -81,117 +81,149 @@
             letter-spacing: 2px; font-weight: bold;
         }
         .log-box {
-            max-height: 150px; overflow-y: auto; text-align: left; 
+            max-height: 120px; overflow-y: auto; text-align: left; 
             background: #1c1c24; padding: 10px; border-radius: 6px; font-size: 14px;
         }
-        .chance-text { color: #f43f5e; font-weight: bold; font-size: 18px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>⚡ 硬核級！每日 AI 推理舒壓遊戲盒</h1>
+    <h1>⚡ 終極速破！每日 AI 三重推理盒</h1>
     
     <div class="score-board">
         <div>我的目前總積分: <span id="displayScore" class="score-val">0</span> 分</div>
+        <div>今日通關進度: <span id="progressText" style="color: #60a5fa;">1 / 3</span></div>
     </div>
 
-    <!-- 🎮 週一、週二：極限腦力心算 -->
-    <div id="gameMonTue" style="display:none;">
-        <div class="game-title">📅 週一、二限定：【5秒極限色盲心算】</div>
-        <p>在倒數結束前，點擊正確的數學答案！</p>
+    <!-- ⏳ 倒數計分計時器 -->
+    <div class="timer-text">⏱️ 本關當前剩餘分值：<span id="timerScore">100</span> 分</div>
+
+    <!-- 🎮 第一關：凱撒密碼文字解密 -->
+    <div id="stage1">
+        <div class="game-title">【第一關：凱撒字體解密】</div>
+        <p style="color: #a4b0be;">情報員注意！英文暗號的每個字母都**被往後挪移了 2 格**：</p>
         <div class="game-box">
-            <h2 style="color: #60a5fa; font-size: 28px; margin: 10px 0;">37 + 56 = ?</h2>
-            <button class="btn" onclick="addHardScore(10, '🎉 心算正確！')">93</button>
-            <button class="btn" onclick="addHardScore(-10, '❌ 粗心算錯囉！')">83</button>
-            <button class="btn" onclick="addHardScore(-10, '❌ 差一點點！')">91</button>
+            <h2 style="color: #38bdf8; font-size: 36px; margin: 10px 0; letter-spacing: 4px;">🎯 暗號：【 K N K G 】</h2>
+            <p style="color: #6b7280; font-size: 13px;">（提示：將字母往前推 2 格還原，例如 C 往前推 2 格是 A）</p>
+            <button class="btn" onclick="wrongAnswer()">KING</button>
+            <button class="btn" onclick="nextStage()">LIFE</button>
+            <button class="btn" onclick="wrongAnswer()">MIND</button>
         </div>
     </div>
 
-    <!-- 🎮 週三、週四：反向指令地獄 -->
-    <div id="gameWedThu" style="display:none;">
-        <div class="game-title">📅 週三、四限定：【反向指令神經地獄】</div>
-        <p style="color: #f87171; font-weight: bold;">🚨 當前魔王命令：【故意唱反調！請點相反方向】</p>
+    <!-- 🎮 第二關：邏輯指令地獄 -->
+    <div id="stage2" style="display:none;">
+        <div class="game-title">【第二關：雙重否定指令地獄】</div>
+        <p style="color: #fb7185; font-weight: bold; font-size: 18px;">🚨 魔王邏輯陷阱提示：</p>
         <div class="game-box">
-            <h3 style="font-size: 20px;">請指示：【往左】</h3>
-            <button class="btn btn-danger" onclick="addHardScore(-15, '❌ 慘了！你聽從了指令，應該要唱反調才對！')">⬅️ 點我往左</button>
-            <button class="btn btn-danger" onclick="addHardScore(15, '🎉 反骨成功！大腦神經反應正確！')">➡️ 點我往右</button>
+            <h3 style="font-size: 22px; color: #facc15; margin-top: 5px;">「請不要不點擊『非右邊』的相反」</h3>
+            <p style="color: #6b7280; font-size: 13px;">（提示拆解：非右邊=左，左的相反=右，不要不點=要點 ➔ 答案：右）</p>
+            <button class="btn btn-danger" onclick="wrongAnswer()">⬅️ 點我往左</button>
+            <button class="btn btn-danger" onclick="nextStage()">➡️ 點我往右</button>
         </div>
     </div>
 
-    <!-- 🎮 週五、週六、週日：硬核 0A0B 猜數字 -->
-    <div id="gameWeekend" style="display:none;">
-        <div class="game-title">📅 週末限定：【硬核邏輯 0A0B 猜數字】</div>
-        <p style="margin-bottom:5px;">神祕密碼是 4 個「不重複的數字」。</p>
-        <p class="chance-text">⚠️ 剩餘指認次數：<span id="chanceCount">7</span> 次</p>
+    <!-- 🎮 第三關：硬核 0A0B 猜數字 -->
+    <div id="stage3" style="display:none;">
+        <div class="game-title">【第三關：硬核邏輯 0A0B 猜數字】</div>
+        <p style="margin-bottom:5px;">神祕密碼是 4 個「不重複的數字」。回答次數不限！</p>
         <div class="game-box">
             <input type="text" id="guessInput" class="num-input" maxlength="4" placeholder="輸入4位數">
-            <button class="btn" style="background:#10b981;" id="submitBtn" onclick="check0A0B()">指認密碼</button>
+            <button class="btn" style="background:#10b981; margin: 0 0 0 10px; padding: 12px 20px;" onclick="check0A0B()">指認密碼</button>
             <h4 style="margin: 15px 0 5px 0; text-align: left; color:#a4b0be;">🕵️ 推理歷史紀錄：</h4>
-            <div class="log-box" id="logBox">
-                （尚未輸入任何猜測...）
-            </div>
+            <div class="log-box" id="logBox">（尚未輸入任何猜測...）</div>
         </div>
     </div>
 
-    <div id="resultText" style="margin-top:15px; padding:12px; border-radius:6px; font-weight:bold; background:#252538; display:none;"></div>
+    <div id="resultText" style="margin-top:15px; padding:12px; border-radius:6px; font-weight:bold; background:#222235; display:none;"></div>
 
-    <button class="btn btn-share" onclick="shareToFriend()">✉️ 複製高分連結，發給朋友發起戰帖！</button>
+    <button class="btn btn-share" onclick="shareToFriend()">✉️ 複製目前戰績，向朋友發起降智打擊！</button>
 </div>
 
 <script>
-// 1. 安全分數接收器
+// 1. 分數接收器
 var urlParams = new URLSearchParams(window.location.search);
 var currentScore = parseInt(urlParams.get('score')) || 0;
 document.getElementById("displayScore").innerText = currentScore;
 
-// 2. 🎮 週末硬核密碼動態生成演算法（每天完全隨機、絕不重複）
+// 遊戲狀態追蹤
+var currentStageNum = 1;
+var stageTimerScore = 100; // 每關初始分值為 100
+var timerInterval;
+
+// 0A0B 隨機答案生成
 var secretCode = "";
 var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-// 用隨機洗牌法取出4個不重複數字
 digits.sort(function() { return 0.5 - Math.random(); });
 secretCode = digits.slice(0, 4).join("");
 
-var remainingChances = 7; // 嚴格 7 次生死線限制
-var isGameOver = false;
-
-// 自動判定星期幾切換區塊
-var currentDay = new Date().getDay(); 
-
-if (currentDay === 1 || currentDay === 2) {
-    document.getElementById("gameMonTue").style.display = "block";
-} else if (currentDay === 3 || currentDay === 4) {
-    document.getElementById("gameWedThu").style.display = "block";
-} else {
-    document.getElementById("gameWeekend").style.display = "block";
+// 啟動計時分值系統
+function startTimer() {
+    stageTimerScore = 100;
+    document.getElementById("timerScore").innerText = stageTimerScore;
+    
+    // 清除舊計時器
+    clearInterval(timerInterval);
+    
+    // 每 1 秒（1000毫秒）扣 2 分
+    timerInterval = setInterval(function() {
+        if (stageTimerScore > 0) {
+            stageTimerScore -= 2;
+            if (stageTimerScore < 0) stageTimerScore = 0;
+            document.getElementById("timerScore").innerText = stageTimerScore;
+        }
+    }, 1000);
 }
 
-// 通用加分機制
-function addHardScore(points, msg) {
-    currentScore += points;
-    if(currentScore < 0) currentScore = 0;
+// 答錯機制（不限次數，但答錯會因懲罰扣減該關分值，逼你更快動腦）
+function wrongAnswer() {
+    var r = document.getElementById("resultText");
+    r.style.display = "block";
+    r.style.color = "#f87171";
+    r.innerText = "❌ 答錯了！大腦混亂中...（本關時間分值額外折損 10 分）";
+    
+    stageTimerScore -= 10;
+    if (stageTimerScore < 0) stageTimerScore = 0;
+    document.getElementById("timerScore").innerText = stageTimerScore;
+}
+
+// 答對並晉級下一關
+function nextStage() {
+    // 結算上一關得分
+    currentScore += stageTimerScore;
     document.getElementById("displayScore").innerText = currentScore;
     
     var r = document.getElementById("resultText");
     r.style.display = "block";
-    r.innerText = msg;
-    r.style.color = points > 0 ? "#4ade80" : "#f87171";
+    r.style.color = "#4ade80";
+    r.innerText = "🎉 答對了！成功斬獲 " + stageTimerScore + " 分！快速進入下一關！";
+
+    currentStageNum++;
+    
+    if (currentStageNum === 2) {
+        document.getElementById("progressText").innerText = "2 / 3";
+        document.getElementById("stage1").style.display = "none";
+        document.getElementById("stage2").style.display = "block";
+        startTimer();
+    } else if (currentStageNum === 3) {
+        document.getElementById("progressText").innerText = "3 / 3";
+        document.getElementById("stage2").style.display = "none";
+        document.getElementById("stage3").style.display = "block";
+        startTimer();
+    }
 }
 
-// 0A0B 硬核邏輯比對
+// 0A0B 邏輯檢查
 function check0A0B() {
-    if (isGameOver) return;
-    
     var input = document.getElementById("guessInput").value.trim();
     var r = document.getElementById("resultText");
     
-    // 嚴格阻擋不合規定的輸入
     if (input.length !== 4 || isNaN(input)) {
         alert("請精確輸入 4 個純數字！");
         return;
     }
     
-    // 檢查是否有重複數字
     var hasDuplicate = false;
     for (var d = 0; d < 4; d++) {
         if (input.indexOf(input.charAt(d)) !== input.lastIndexOf(input.charAt(d))) {
@@ -199,15 +231,11 @@ function check0A0B() {
         }
     }
     if (hasDuplicate) {
-        alert("依據密碼規則，輸入的 4 個數字不能重複！");
+        alert("數字不能重複！");
         return;
     }
     
-    remainingChances--;
-    document.getElementById("chanceCount").innerText = remainingChances;
-    
-    var a = 0;
-    var b = 0;
+    var a = 0, b = 0;
     for (var i = 0; i < 4; i++) {
         if (input.charAt(i) === secretCode.charAt(i)) {
             a++;
@@ -217,41 +245,39 @@ function check0A0B() {
     }
     
     var logBox = document.getElementById("logBox");
-    if(logBox.innerText.indexOf("尚未輸入") !== -1) {
-        logBox.innerHTML = "";
-    }
-    
-    logBox.innerHTML += "<div>🤔 輸入 <strong>" + input + "</strong> ➜ 獲得 <strong>" + a + "A " + b + "B</strong></div>";
+    if(logBox.innerText.indexOf("尚未輸入") !== -1) logBox.innerHTML = "";
+    logBox.innerHTML += "<div>🤔 嘗試 <strong>" + input + "</strong> ➜ 獲得 <strong>" + a + "A " + b + "B</strong></div>";
     
     if (a === 4) {
-        isGameOver = true;
-        document.getElementById("submitBtn").disabled = true;
-        addHardScore(50, "🎉 奇蹟！你成功在死線前破解了隨機密碼！獲得 50 分！");
-    } else if (remainingChances <= 0) {
-        isGameOver = true;
-        document.getElementById("submitBtn").disabled = true;
-        addHardScore(-20, "💀 挑戰失敗！機會已用盡。密碼已被系統永久銷毀！(扣除 20 分)");
+        clearInterval(timerInterval);
+        currentScore += stageTimerScore;
+        document.getElementById("displayScore").innerText = currentScore;
+        
+        document.getElementById("progressText").innerText = "🎉 已全數通關";
+        r.style.display = "block";
+        r.style.color = "#4ade80";
+        r.innerHTML = "🏆 恭喜大豐收！今日三重考驗全數擊破！<br>第三關獲得： " + stageTimerScore + " 分！快點選下方複製連結向朋友炫耀！";
     } else {
         r.style.display = "block";
         r.style.color = "#facc15";
-        r.innerText = "❌ 推理錯誤！獲得 " + a + "A " + b + "B。小心，次數正在減少！";
+        r.innerText = "❌ 密碼不對！獲得 " + a + "A " + b + "B。時間正在流逝，抓緊時間！";
     }
 }
 
-// 邀請挑戰按鈕
 function shareToFriend() {
     var baseUrl = window.location.href.split('?');
-    var shareUrl = baseUrl + "?score=" + currentScore;
-    
+    var shareUrl = baseUrl[0] + "?score=" + currentScore;
     var tempInput = document.createElement("input");
     tempInput.value = shareUrl;
     document.body.appendChild(tempInput);
     tempInput.select();
     document.execCommand("copy");
     document.body.removeChild(tempInput);
-    
-    alert("🔗 戰帖複製成功！\n你的朋友點開連結時，會直接載入你的「 " + currentScore + " 分」紀錄！快去挑釁他們，看看誰能用最少的步數破解今天的隨機密碼！");
+    alert("🔗 戰帖複製成功！發給朋友，看他們在三關連續壓迫下，最後的總分能不能超越你的「 " + currentScore + " 分」！");
 }
+
+// 遊戲盒啟動
+startTimer();
 </script>
 
 </body>
