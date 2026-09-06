@@ -72,6 +72,8 @@
         .btn:hover { background-color: #1d4ed8; transform: scale(1.03); }
         .btn-danger { background-color: #dc2626; }
         .btn-danger:hover { background-color: #b91c1c; }
+        .btn-start { background-color: #10b981; font-size: 20px; width: 100%; padding: 16px; margin-top: 15px; }
+        .btn-start:hover { background-color: #059669; }
         .btn-share { background-color: #7c3aed; width: 100%; margin-top: 15px; }
         .btn-share:hover { background-color: #6d28d9; }
         
@@ -93,14 +95,26 @@
     
     <div class="score-board">
         <div>我的目前總積分: <span id="displayScore" class="score-val">0</span> 分</div>
-        <div>今日通關進度: <span id="progressText" style="color: #60a5fa;">1 / 3</span></div>
+        <div>今日通關進度: <span id="progressText" style="color: #60a5fa;">0 / 3</span></div>
     </div>
 
-    <!-- ⏳ 倒數計分計時器 -->
+    <!-- ⏳ 倒數計分計時器（開始前先顯示滿分） -->
     <div class="timer-text">⏱️ 本關當前剩餘分值：<span id="timerScore">100</span> 分</div>
 
-    <!-- 🎮 第一關：凱撒密碼文字解密 -->
-    <div id="stage1">
+    <!-- 🚩 初始歡迎與準備頁面 -->
+    <div id="startScreen">
+        <div class="game-box" style="border-color: #10b981; text-align: left;">
+            <h3 style="color: #10b981; margin-top:0;">🧠 挑戰規則說明：</h3>
+            <p>1. 你即將連續面對三道硬核考驗（凱撒密碼、雙重否定、0A0B）。</p>
+            <p>2. 每關初始分值為 <strong>100分</strong>，遊戲中<strong>每過 1 秒就會扣 2 分</strong>！</p>
+            <p>3. 答錯任何題目，該關分值會**額外重罰扣 10 分**！</p>
+            <p>4. 點擊下方按鈕後，計時器與第一題才會正式啟動！</p>
+        </div>
+        <button class="btn btn-start" onclick="startGameNow()">🚨 準備好了，開始挑戰！</button>
+    </div>
+
+    <!-- 🎮 第一關：凱撒密碼文字解密（初始先隱藏） -->
+    <div id="stage1" style="display:none;">
         <div class="game-title">【第一關：凱撒字體解密】</div>
         <p style="color: #a4b0be;">情報員注意！英文暗號的每個字母都**被往後挪移了 2 格**：</p>
         <div class="game-box">
@@ -112,7 +126,7 @@
         </div>
     </div>
 
-    <!-- 🎮 第二關：邏輯指令地獄 -->
+    <!-- 🎮 第二關：邏輯指令地獄（初始先隱藏） -->
     <div id="stage2" style="display:none;">
         <div class="game-title">【第二關：雙重否定指令地獄】</div>
         <p style="color: #fb7185; font-weight: bold; font-size: 18px;">🚨 魔王邏輯陷阱提示：</p>
@@ -124,7 +138,7 @@
         </div>
     </div>
 
-    <!-- 🎮 第三關：硬核 0A0B 猜數字 -->
+    <!-- 🎮 第三關：硬核 0A0B 猜數字（初始先隱藏） -->
     <div id="stage3" style="display:none;">
         <div class="game-title">【第三關：硬核邏輯 0A0B 猜數字】</div>
         <p style="margin-bottom:5px;">神祕密碼是 4 個「不重複的數字」。回答次數不限！</p>
@@ -147,9 +161,8 @@ var urlParams = new URLSearchParams(window.location.search);
 var currentScore = parseInt(urlParams.get('score')) || 0;
 document.getElementById("displayScore").innerText = currentScore;
 
-// 遊戲狀態追蹤
-var currentStageNum = 1;
-var stageTimerScore = 100; // 每關初始分值為 100
+var currentStageNum = 0;
+var stageTimerScore = 100; 
 var timerInterval;
 
 // 0A0B 隨機答案生成
@@ -158,15 +171,22 @@ var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 digits.sort(function() { return 0.5 - Math.random(); });
 secretCode = digits.slice(0, 4).join("");
 
-// 啟動計時分值系統
+// 💥 點擊開始挑戰按鈕才觸發核心
+function startGameNow() {
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("stage1").style.display = "block";
+    currentStageNum = 1;
+    document.getElementById("progressText").innerText = "1 / 3";
+    startTimer();
+}
+
 function startTimer() {
     stageTimerScore = 100;
     document.getElementById("timerScore").innerText = stageTimerScore;
     
-    // 清除舊計時器
     clearInterval(timerInterval);
     
-    // 每 1 秒（1000毫秒）扣 2 分
+    // 每 1 秒扣 2 分
     timerInterval = setInterval(function() {
         if (stageTimerScore > 0) {
             stageTimerScore -= 2;
@@ -176,21 +196,18 @@ function startTimer() {
     }, 1000);
 }
 
-// 答錯機制（不限次數，但答錯會因懲罰扣減該關分值，逼你更快動腦）
 function wrongAnswer() {
     var r = document.getElementById("resultText");
     r.style.display = "block";
     r.style.color = "#f87171";
-    r.innerText = "❌ 答錯了！大腦混亂中...（本關時間分值額外折損 10 分）";
+    r.innerText = "❌ 答錯了！大腦混亂中...（時間分值額外折損 10 分）";
     
     stageTimerScore -= 10;
     if (stageTimerScore < 0) stageTimerScore = 0;
     document.getElementById("timerScore").innerText = stageTimerScore;
 }
 
-// 答對並晉級下一關
 function nextStage() {
-    // 結算上一關得分
     currentScore += stageTimerScore;
     document.getElementById("displayScore").innerText = currentScore;
     
@@ -214,7 +231,6 @@ function nextStage() {
     }
 }
 
-// 0A0B 邏輯檢查
 function check0A0B() {
     var input = document.getElementById("guessInput").value.trim();
     var r = document.getElementById("resultText");
@@ -253,32 +269,3 @@ function check0A0B() {
         currentScore += stageTimerScore;
         document.getElementById("displayScore").innerText = currentScore;
         
-        document.getElementById("progressText").innerText = "🎉 已全數通關";
-        r.style.display = "block";
-        r.style.color = "#4ade80";
-        r.innerHTML = "🏆 恭喜大豐收！今日三重考驗全數擊破！<br>第三關獲得： " + stageTimerScore + " 分！快點選下方複製連結向朋友炫耀！";
-    } else {
-        r.style.display = "block";
-        r.style.color = "#facc15";
-        r.innerText = "❌ 密碼不對！獲得 " + a + "A " + b + "B。時間正在流逝，抓緊時間！";
-    }
-}
-
-function shareToFriend() {
-    var baseUrl = window.location.href.split('?');
-    var shareUrl = baseUrl[0] + "?score=" + currentScore;
-    var tempInput = document.createElement("input");
-    tempInput.value = shareUrl;
-    document.body.appendChild(tempInput);
-    tempInput.select();
-    document.execCommand("copy");
-    document.body.removeChild(tempInput);
-    alert("🔗 戰帖複製成功！發給朋友，看他們在三關連續壓迫下，最後的總分能不能超越你的「 " + currentScore + " 分」！");
-}
-
-// 遊戲盒啟動
-startTimer();
-</script>
-
-</body>
-</html>
