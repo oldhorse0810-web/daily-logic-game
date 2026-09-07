@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>【第一關】凱撒密碼解密</title>
+    <style>
+        body { font-family: sans-serif; background-color: #0d0d11; color: #e4e4e7; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background-color: #161622; padding: 30px; border-radius: 16px; max-width: 540px; width: 100%; text-align: center; border: 1px solid #3f222a; }
+        .timer-zone { font-size: 20px; font-weight: bold; color: #f43f5e; margin: 15px 0; background: #222235; padding: 10px; border-radius: 8px; }
+        .timer-num::after { content: "100"; animation: cssFineTimer 100s linear forwards; color: #facc15; }
+        .game-title { font-size: 17px; font-weight: bold; color: #f43f5e; margin-bottom: 15px; background: #2a151b; padding: 10px; border-radius: 6px; border-left: 4px solid #f43f5e; }
+        .box { background: #0f0f12; padding: 25px; border-radius: 12px; margin-bottom: 20px; border: 1px dashed #ef4444; text-align: left; }
+        .btn-link { background-color: #2563eb; color: white; padding: 14px 28px; font-size: 16px; font-weight: bold; border-radius: 8px; display: inline-block; text-decoration: none; margin: 8px; }
+        .btn-link:hover { background-color: #1d4ed8; }
+        @keyframes cssFineTimer {
+            0% { content: "100"; } 1% { content: "99"; } 2% { content: "98"; } 3% { content: "97"; } 4% { content: "96"; } 5% { content: "95"; } 10% { content: "90"; } 20% { content: "80"; } 30% { content: "70"; } 40% { content: "60"; } 50% { content: "50"; } 60% { content: "40"; } 70% { content: "30"; } 80% { content: "20"; } 90% { content: "10"; } 100% { content: "0"; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- ⏱️ 第一關專屬計時器，一打開 100% 從 100 精準每秒扣 1 分開跑 -->
+    <div class="timer-zone">⏱️ 第一關當前剩餘分值：<span class="timer-num"></span> 分</div>
+    <div class="game-title">【第一關：凱撒字體解密】</div>
+    <p style="color: #a4b0be; text-align: left;">情報員注意！英文暗號每個字母均**被往後挪移了 2 格**：</p>
+    <div class="box">
+        <h2 style="color: #38bdf8; font-size: 36px; margin: 10px 0; letter-spacing: 4px; text-align: center;">🎯 暗號：【 N K H G 】</h2>
+        <p style="color: #6b7280; font-size: 13px; text-align: center;">（提示：將字母往前退 2 格還原。例如 N 退 2 格是 L）</p>
+    </div>
+    <p style="font-weight: bold; color: #a4b0be;">請點擊選項鎖定分數，進行指認：</p>
+    <!-- 答錯就跳轉，答對就進入下一關 -->
+    <a href="stage1_wrong.html" class="btn-link">KING</a>
+    <a href="stage2.html" class="btn-link">LIFE</a>
+    <a href="stage1_wrong.html" class="btn-link">MIND</a>
+</div>
+</body>
+</html>

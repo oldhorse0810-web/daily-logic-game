@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>【最終關】硬核密碼指認大通關</title>
+    <style>
+        body { font-family: sans-serif; background-color: #0d0d11; color: #e4e4e7; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background-color: #161622; padding: 30px; border-radius: 16px; max-width: 540px; width: 100%; text-align: center; border: 1px solid #3f222a; }
+        .timer-zone { font-size: 20px; font-weight: bold; color: #f43f5e; margin: 15px 0; background: #222235; padding: 10px; border-radius: 8px; }
+        .timer-num::after { content: "100"; animation: cssFineTimer 100s linear forwards; color: #facc15; }
+        .game-title { font-size: 17px; font-weight: bold; color: #f43f5e; margin-bottom: 15px; background: #2a151b; padding: 10px; border-radius: 6px; border-left: 4px solid #f43f5e; }
+        .box { background: #0f0f12; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px dashed #ef4444; text-align: left; }
+        .btn-link { background-color: #2563eb; color: white; padding: 14px 28px; font-size: 16px; font-weight: bold; border-radius: 8px; display: inline-block; text-decoration: none; margin: 8px; }
+        .btn-link:hover { background-color: #1d4ed8; }
+        .btn-start { background-color: #10b981; font-size: 18px; width: 100%; padding: 14px; display: block; border-radius: 8px; color: white; font-weight: bold; text-decoration: none; margin-top: 15px; box-sizing: border-box; }
+        
+        /* 0% JS 隱藏控制項，專屬於第三關面板 */
+        .stage3-view { display: none; }
+        .stage3-view:target { display: block; }
+        #s3-default-panel { display: block; }
+        :target ~ #s3-default-panel { display: none; }
+        
+        .msg-box { padding: 15px; border-radius: 6px; font-weight: bold; margin-top: 15px; text-align: left; }
+        .msg-correct { background-color: #10ac84; color: white; border: 1px solid #4ade80; }
+        .msg-wrong { background-color: #ee5253; color: white; border: 1px solid #f87171; }
+        @keyframes cssFineTimer {
+            0% { content: "100"; } 1% { content: "99"; } 2% { content: "98"; } 3% { content: "97"; } 4% { content: "96"; } 5% { content: "95"; } 10% { content: "90"; } 20% { content: "80"; } 30% { content: "70"; } 40% { content: "60"; } 50% { content: "50"; } 60% { content: "40"; } 70% { content: "30"; } 80% { content: "20"; } 90% { content: "10"; } 100% { content: "0"; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- ⏱️ 第三關獨立計時器 -->
+    <div class="timer-zone">⏱️ 第三關當前剩餘分值：<span class="timer-num"></span> 分</div>
+    
+    <!-- 📊 同時告知前兩關均已通關戰報 -->
+    <div style="background:#1b2e24; color:#4ade80; padding:8px; border-radius:6px; font-size:14px; margin-bottom:15px; font-weight:bold; border:1px solid #4ade80;">
+        🥇 前關戰報 ➜ 凱撒密碼：已成功破譯！ | 🥈 雙重否定：已成功繞過！
+    </div>
+
+    <!-- 🔮 預設第三關硬核推理控制面板 -->
+    <div id="s3-default-panel" class="stage3-view" style="display: block;">
+        <div class="game-title">【最終關：硬核數字密碼推理】</div>
+        <div class="box">
+            <p><strong>終極特工密碼特徵：</strong></p>
+            <p>1. 這是一個 4 位數，且數字完全不重複。</p>
+            <p>2. 輸入 <strong>1324</strong> 獲得 <strong>0A 2B</strong></p>
+            <p>3. 輸入 <strong>4312</strong> 獲得 <strong>2A 2B</strong></p>
+        </div>
+        <!-- 🛡️ 密碼指認區：全部統一為深藍色，不包含任何洩題綠底！ -->
+        <p style="font-weight: bold; color: #a4b0be;">🔍 請點擊按鈕指認終極安全密碼：</p>
+        <a href="#s3-wrong-answer" class="btn-link">3412</a>
+        <a href="#s3-win-screen" class="btn-link">4321</a>
+        <a href="#s3-wrong-answer" class="btn-link">4312</a>
+    </div>
+
+    <!-- ❌ 第三關答錯畫面 -->
+    <div id="s3-wrong-answer" class="stage3-view">
+        <div class="msg-box msg-wrong">
+            <h3>❌ 密碼指認失敗！</h3>
+            <p>該數字無法滿足 4312 (2A2B) 的邏輯交叉比對結果。</p>
+        </div>
+        <a href="stage3.html" class="btn-start" style="background-color: #ff9f43;">🔄 重置 100 分值 · 重新排查密碼</a>
+    </div>
+
+    <!-- 🏆 終極大通關、三關戰績加總結算大看板！ -->
+    <div id="s3-win-screen" class="stage3-view">
+        <div class="msg-box msg-correct" style="background:#2f3542; color:#ffca28; border-color:#ffca28; padding: 25px;">
+            <h2 style="text-align: center; color: #4ade80; margin-top:0;">🏆 三重腦力極限全數擊破！</h2>
+            <p style="color:#e4e4e7;">正確解密密碼確實是【 4 3 2 1 】！你成功保護了特工安全防線！</p>
+            <hr style="border-color: #4b5563; margin: 15px 0;">
+            
+            <!-- 📊 各關得分實時加總清單一覽！直接大方攤開，100% 絕對看得到分數 -->
+            <h4 style="color:#a4b0be; margin-bottom:5px;">📊 每日特工最終分數榮譽榜：</h4>
+            <div style="background:#0f0f12; padding:15px; border-radius:8px; border:1px solid #334155; line-height:1.8; color: white;">
+                <div style="text-align:left; font-size:15px;">🥇 第一關「凱撒密碼」戰績 ➔ <b>成功破譯！分數為你在該關凍結之值</b></div>
+                <div style="text-align:left; font-size:15px;">🥈 第二關「雙重否定」戰績 ➔ <b>成功繞過！分數為你在該關凍結之值</b></div>
+                <div style="text-align:left; font-size:15px;">🥉 第三關「數字推理」戰績 ➔ <b>成功指認！分數為上方看板最後停留值</b></div>
+                <hr style="border-color:#334155; margin:10px 0;">
+                <div style="text-align:left; font-size:16px; font-weight:bold; color:#4ade80;">🔥 總分統計機制 ➔ 上述三關的剩餘數字加總，即為你的最終神級得分紀錄！</div>
+            </div>
+        </div>
+        <a href="index.html" class="btn-start" style="background-color: #7c3aed;">🔄 彻底重開一輪全新挑戰</a>
+    </div>
+
+</div>
+</body>
+</html>
