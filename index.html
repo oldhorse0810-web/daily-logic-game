@@ -25,97 +25,55 @@
             width: 100%;
             text-align: center;
             border: 1px solid #3f222a;
-            position: relative;
         }
         h1 { color: #f43f5e; margin-top: 0; font-size: 24px; letter-spacing: 1px; }
         
-        /* 核心防封鎖：隱藏控制方塊 */
-        .game-trigger { display: none; }
-
-        /* 🚩 歡迎首頁區塊 */
-        #startScreen { display: block; }
-        .btn-start {
-            background-color: #10b981; font-size: 20px; width: 100%; padding: 16px; 
-            margin-top: 15px; border: none; color: white; border-radius: 8px; font-weight: bold; cursor: pointer;
-            display: block; text-align: center; text-decoration: none;
-        }
-        .btn-start:hover { background-color: #059669; }
-
-        /* ⏱️ 純 CSS 齒輪計時分值特效（每秒自動扣 2 分） */
+        /* ⏱️ 純 CSS 倒數計時沙漏（完全不靠 JS，每秒自動倒數扣分，50秒扣完） */
         .timer-zone {
             font-size: 20px; font-weight: bold; color: #f43f5e; margin: 15px 0;
-            display: none; /* 預設隱藏，點開始才啟動 */
+            background: #222235; padding: 10px; border-radius: 6px; border: 1px solid #373754;
         }
         .timer-num::after {
             content: "100";
-            animation: countdownScore 50s linear forwards;
+            animation: cssScoreTimer 50s linear forwards;
+            color: #facc15;
         }
 
-        /* 🎮 關卡大結構控制 */
-        .stage-box { display: none; }
         .game-title {
             font-size: 17px; font-weight: bold; color: #f43f5e; margin-bottom: 15px;
             background: #2a151b; padding: 10px; border-radius: 6px; border-left: 4px solid #f43f5e;
         }
         .game-content-box { background: #0f0f12; padding: 25px; border-radius: 12px; margin-bottom: 20px; border: 1px dashed #ef4444; text-align: left; }
         
-        /* 按鈕樣式 */
-        .btn-label {
+        .btn-link {
             background-color: #2563eb; color: white; padding: 14px 28px;
             font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer;
-            margin: 8px; display: inline-block; transition: 0.1s;
+            margin: 8px; display: inline-block; text-decoration: none; transition: 0.1s;
         }
-        .btn-label:hover { background-color: #1d4ed8; transform: scale(1.02); }
-        .btn-danger { background-color: #dc2626; }
-        .btn-danger:hover { background-color: #b91c1c; }
+        .btn-link:hover { background-color: #1d4ed8; transform: scale(1.02); }
+        .btn-start { background-color: #10b981; font-size: 20px; width: 90%; padding: 16px; margin: 15px auto 0 auto; display: block; border-radius: 8px; color: white; font-weight: bold; text-decoration: none; }
+        .btn-start:hover { background-color: #059669; }
 
-        /* 🎁 隱藏答案回饋區 */
-        .msg-box { padding: 15px; border-radius: 6px; font-weight: bold; margin-top: 15px; display: none; text-align: left; }
+        /* 錨點視窗路由控制 */
+        .page-view { display: none; }
+        .page-view:target { display: block; }
+        
+        #home-screen { display: block; }
+        :target ~ #home-screen { display: none; }
+
+        .msg-box { padding: 15px; border-radius: 6px; font-weight: bold; margin-top: 15px; text-align: left; }
         .msg-correct { background-color: #10ac84; color: white; border: 1px solid #4ade80; }
         .msg-wrong { background-color: #ee5253; color: white; border: 1px solid #f87171; }
 
-        /* 🧠 頂級 CSS 狀態機邏輯切換（100% 繞過瀏覽器阻擋機制） */
-        /* 1. 當按下「開始挑戰」，隱藏首頁，顯示計時器與第一題 */
-        #trigger-start:checked ~ #startScreen { display: none; }
-        #trigger-start:checked ~ .timer-zone { display: block; }
-        #trigger-start:checked ~ #stage1 { display: block; }
-
-        /* 2. 第一關答案回饋控制 */
-        #s1-w1:checked ~ #stage1 .msg-w1 { display: block; }
-        #s1-w2:checked ~ #stage1 .msg-w2 { display: block; }
-        #s1-correct:checked ~ #stage1 .msg-correct-box { display: block; }
-        /* 答對後顯示「前往第二關」的按鈕連結 */
-        #s1-correct:checked ~ #stage1 .next-btn-zone { display: block; }
-
-        /* 3. 進入第二關 */
-        #trigger-goto2:checked ~ #stage1 { display: none; }
-        #trigger-goto2:checked ~ #stage2 { display: block; }
-        #s2-w1:checked ~ #stage2 .msg-w1 { display: block; }
-        #s2-correct:checked ~ #stage2 .msg-correct-box { display: block; }
-        #s2-correct:checked ~ #stage2 .next-btn-zone { display: block; }
-
-        /* 4. 進入第三關 */
-        #trigger-goto3:checked ~ #stage2 { display: none; }
-        #trigger-goto3:checked ~ #stage3 { display: block; }
-        #s3-w1:checked ~ #stage3 .msg-w1 { display: block; }
-        #s3-w2:checked ~ #stage3 .msg-w2 { display: block; }
-        #s3-correct:checked ~ #stage3 .msg-correct-box { display: block; }
-
-        /* ⏰ 純 CSS 倒數動畫腳本（每 0.5 秒動一次，50秒剛好扣完100分） */
-        @keyframes countdownScore {
-            0% { content: "100"; } 2% { content: "98"; } 4% { content: "96"; } 6% { content: "94"; }
-            8% { content: "92"; } 10% { content: "90"; } 12% { content: "88"; } 14% { content: "86"; }
-            16% { content: "84"; } 18% { content: "82"; } 20% { content: "80"; } 22% { content: "78"; }
-            24% { content: "76"; } 26% { content: "74"; } 28% { content: "72"; } 30% { content: "70"; }
-            32% { content: "68"; } 34% { content: "66"; } 36% { content: "64"; } 38% { content: "62"; }
-            40% { content: "60"; } 42% { content: "58"; } 44% { content: "56"; } 46% { content: "54"; }
-            48% { content: "52"; } 50% { content: "50"; } 52% { content: "48"; } 54% { content: "46"; }
-            56% { content: "44"; } 58% { content: "42"; } 60% { content: "40"; } 62% { content: "38"; }
-            64% { content: "36"; } 66% { content: "34"; } 68% { content: "32"; } 70% { content: "30"; }
-            72% { content: "28"; } 74% { content: "26"; } 76% { content: "24"; } 78% { content: "22"; }
-            80% { content: "20"; } 82% { content: "18"; } 84% { content: "16"; } 86% { content: "14"; }
-            88% { content: "12"; } 90% { content: "10"; } 92% { content: "8"; } 94% { content: "6"; }
-            96% { content: "4"; } 98% { content: "2"; } 100% { content: "0"; }
+        /* ⏰ 純 CSS 秒數扣分動畫計時器（50秒剛好扣完100分） */
+        @keyframes cssScoreTimer {
+            0% { content: "100"; } 2% { content: "96"; } 4% { content: "92"; } 6% { content: "88"; }
+            8% { content: "84"; } 10% { content: "80"; } 12% { content: "76"; } 14% { content: "72"; }
+            16% { content: "68"; } 18% { content: "64"; } 20% { content: "60"; } 22% { content: "56"; }
+            24% { content: "52"; } 26% { content: "48"; } 28% { content: "44"; } 30% { content: "40"; }
+            32% { content: "36"; } 34% { content: "32"; } 36% { content: "28"; } 38% { content: "24"; }
+            40% { content: "20"; } 42% { content: "16"; } 44% { content: "12"; } 46% { content: "8"; }
+            48% { content: "4"; } 50% { content: "0"; } 100% { content: "0"; }
         }
     </style>
 </head>
@@ -123,92 +81,120 @@
 
 <div class="container">
     <h1>⚡ 終極速破！每日 AI 三重推理盒</h1>
-    
-    <!-- ⚙️ 後台狀態切換引擎（純粹的網頁標籤，安全率100%） -->
-    <input type="checkbox" id="trigger-start" class="game-trigger">
-    <input type="checkbox" id="trigger-goto2" class="game-trigger">
-    <input type="checkbox" id="trigger-goto3" class="game-trigger">
 
-    <!-- ⏳ 動態分值計時器（點開始後，這裡的分數會活生生自己往下扣！） -->
+    <!-- ⏱️ 純 CSS 齒輪時間分值（點開始挑戰進入關卡後，就會活生生看到分數每秒往下扣！） -->
     <div class="timer-zone">
-        ⏱️ 本關當前剩餘分值：<span class="timer-num" style="color:#facc15;"></span> 分
+        ⏱️ 當前盲猜剩餘分值：<span class="timer-num"></span> 分
     </div>
 
-    <!-- 🚩 首頁說明區 -->
-    <div id="startScreen">
+    <!-- 🚩 1. 歡迎首頁 -->
+    <div id="home-screen" class="page-view" style="display: block;">
         <div class="game-content-box" style="border-color: #10b981;">
             <h3 style="color: #10b981; margin-top:0;">🧠 挑戰規則說明：</h3>
-            <p>1. 你即將面臨三道硬核考驗（凱撒密碼、雙重否定、高級邏輯推理）。</p>
-            <p>2. 關卡分值會隨時間**每秒自動扣減 2 分**！答案全部隱藏。</p>
-            <p>3. 點擊下方大按鈕，計時與第一題才會同步點燃炸開！</p>
+            <p>1. 你即將連續挑戰三道硬核考驗（凱撒密碼、雙重否定、終極密碼）。</p>
+            <p>2. 上方時間池初始為 <strong>100 分</strong>，隨著時間流逝會**自動即時扣分**！</p>
+            <p>3. 答案全面隱藏，點擊選項後會立刻跳轉進入對錯驗證！</p>
         </div>
-        <!-- 點擊這個標籤，會直接觸發後台開關，瞬間開啟遊戲！ -->
-        <label for="trigger-start" class="btn-start">🚨 準備好了，開始挑戰！</label>
+        <a href="#stage1-question" class="btn-start">🚨 點此點燃沙漏，開始挑戰！</a>
     </div>
 
-    <!-- 🎮 第一關：凱撒字體解密 -->
-    <div id="stage1" class="stage-box">
+    <!-- 🎮 2. 第一關問題頁面（人工嚴格校對版題目） -->
+    <div id="stage1-question" class="page-view">
         <div class="game-title">【第一關：凱撒字體解密】</div>
         <p style="color: #a4b0be; text-align: left;">情報員注意！英文暗號的每個字母都**被往後挪移了 2 格**：</p>
         <div class="game-content-box">
-            <h2 style="color: #38bdf8; font-size: 36px; margin: 10px 0; letter-spacing: 4px; text-align: center;">🎯 暗號：【 K N K G 】</h2>
+            <!-- 🛠️ 題目修正：原本 LIFE 的加密應該是 N K H G (L+2=N, I+2=K, F+2=H, E+2=G) -->
+            <h2 style="color: #38bdf8; font-size: 36px; margin: 10px 0; letter-spacing: 4px; text-align: center;">🎯 暗號：【 N K H G 】</h2>
+            <p style="color: #6b7280; font-size: 13px; text-align: center;">（提示：將字母往前退 2 格還原。例如 N 退 2 格是 L）</p>
         </div>
-        
-        <!-- 隱藏單選按鈕組 -->
-        <input type="radio" id="s1-w1" name="s1" class="game-trigger">
-        <input type="radio" id="s1-correct" name="s1" class="game-trigger">
-        <input type="radio" id="s1-w2" name="s1" class="game-trigger">
-
-        <label for="s1-w1" class="btn-label">KING</label>
-        <label for="s1-correct" class="btn-label">LIFE</label>
-        <label for="s1-w2" class="btn-label">MIND</label>
-
-        <!-- 點擊後才會跳出的動態隱藏答案 -->
-        <div class="msg-box msg-wrong msg-w1">❌ 破譯錯誤！KING 不符合位移規律。</div>
-        <div class="msg-box msg-wrong msg-w2">❌ 破譯錯誤！MIND 字母完全不對。</div>
-        <div class="msg-box msg-correct msg-correct-box">🎉 破譯正確！KNKG 往前推兩格確實是 LIFE！獲得當前剩餘分數！</div>
-        
-        <!-- 通關才亮起的下一關指引 -->
-        <div class="next-btn-zone" style="display:none; margin-top:15px;">
-            <label for="trigger-goto2" class="btn-start" style="background-color:#3b82f6;">➔ 進入第二關（重置計分池）</label>
-        </div>
+        <p style="font-weight: bold; color: #a4b0be;">請選擇還原後的真實單字：</p>
+        <a href="#stage1-wrong" class="btn-link">KING</a>
+        <a href="#stage1-correct" class="btn-link">LIFE</a>
+        <a href="#stage1-wrong" class="btn-link">MIND</a>
     </div>
 
-    <!-- 🎮 第二關：雙重否定 -->
-    <div id="stage2" class="stage-box">
+    <!-- ❌ 第一關答錯 -->
+    <div id="stage1-wrong" class="page-view">
+        <div class="msg-box msg-wrong">
+            <h3>❌ 破譯失敗！</h3>
+            <p>你選擇的單字不符合往前推 2 格的凱撒密碼規律（N-2=L, K-2=I）。</p>
+        </div>
+        <a href="#stage1-question" class="btn-start" style="background-color: #ff9f43;">🔄 回到關卡重新思考</a>
+    </div>
+
+    <!-- ⭕ 第一關答對 -->
+    <div id="stage1-correct" class="page-view">
+        <div class="msg-box msg-correct">
+            <h3>🎉 破譯正確！</h3>
+            <p>將 N K H G 每個字母倒退 2 格，確實就是 LIFE！邏輯完美無瑕！</p>
+        </div>
+        <a href="#stage2-question" class="btn-start">➔ 鎖定分數，進入第二關 ⚡</a>
+    </div>
+
+    <!-- 🎮 3. 第二關問題頁面 -->
+    <div id="stage2-question" class="page-view">
         <div class="game-title">【第二關：雙重否定指令地獄】</div>
         <div class="game-content-box">
             <h3 style="font-size: 20px; color: #facc15; margin-top: 5px; text-align: center;">「請不要不點擊『非右邊』的相反」</h3>
         </div>
-
-        <input type="radio" id="s2-w1" name="s2" class="game-trigger">
-        <input type="radio" id="s2-correct" name="s2" class="game-trigger">
-
-        <label for="s2-w1" class="btn-label btn-danger">⬅️ 點我往左</label>
-        <label for="s2-correct" class="btn-label btn-danger">➡️ 點我往右</label>
-
-        <div class="msg-box msg-wrong msg-w1">❌ 掉進魔王的雙重否定陷阱了！往左是錯的！</div>
-        <div class="msg-box msg-correct msg-correct-box">🎉 反骨成功！雙重否定成功繞過，答案確實是往右！</div>
-
-        <div class="next-btn-zone" style="display:none; margin-top:15px;">
-            <label for="trigger-goto3" class="btn-start" style="background-color:#3b82f6;">➔ 進入最終硬核解密關</label>
-        </div>
+        <p style="font-weight: bold; color: #a4b0be;">請下達你大腦的反射指令：</p>
+        <a href="#stage2-wrong" class="btn-link btn-danger">⬅️ 點我往左</a>
+        <a href="#stage2-correct" class="btn-link btn-danger">➡️ 點我往右</a>
     </div>
 
-    <!-- 🎮 第三關：邏輯高級密碼 -->
-    <div id="stage3" class="stage-box">
+    <!-- ❌ 第二關答錯 -->
+    <div id="stage2-wrong" class="page-view">
+        <div class="msg-box msg-wrong">
+            <h3>❌ 反應錯誤！</h3>
+            <p>你掉進了魔王的雙重否定陷阱，往左是錯的！</p>
+        </div>
+        <a href="#stage2-question" class="btn-start" style="background-color: #ff9f43;">🔄 重新挑戰神經繞道</a>
+    </div>
+
+    <!-- ⭕ 第二關答對 -->
+    <div id="stage2-correct" class="page-view">
+        <div class="msg-box msg-correct">
+            <h3>🎉 邏輯完美！</h3>
+            <p>拆解：非右邊 = 左，左的相反 = 右，不要不點 = 要點！答案確實是往右！</p>
+        </div>
+        <a href="#stage3-question" class="btn-start">➔ 鎖定分數，進入最終硬核密碼關 ⚡</a>
+    </div>
+
+    <!-- 🎮 4. 第三關問題頁面 -->
+    <div id="stage3-question" class="page-view">
         <div class="game-title">【最終關：硬核數字密碼推理】</div>
         <div class="game-content-box">
-            <p><strong>終極安全特工任務：</strong>經 AI 運算，今日密碼特徵如下：</p>
+            <p><strong>終極特工密碼特徵：</strong></p>
             <p>1. 這是一個 4 位數，且數字完全不重複。</p>
             <p>2. 輸入 <strong>1324</strong> 獲得 <strong>0A 2B</strong></p>
             <p>3. 輸入 <strong>4312</strong> 獲得 <strong>2A 2B</strong></p>
         </div>
+        <p style="font-weight: bold; color: #a4b0be;">請指認終極安全密碼：</p>
+        <a href="#stage3-wrong" class="btn-link">3412</a>
+        <a href="#stage3-correct" class="btn-link" style="background-color: #10b981;">4321</a>
+        <a href="#stage3-wrong" class="btn-link">4312</a>
+    </div>
 
-        <input type="radio" id="s3-w1" name="s3" class="game-trigger">
-        <input type="radio" id="s3-w2" name="s3" class="game-trigger">
-        <input type="radio" id="s3-correct" name="s3" class="game-trigger">
+    <!-- ❌ 第三關答錯 -->
+    <div id="stage3-wrong" class="page-view">
+        <div class="msg-box msg-wrong">
+            <h3>❌ 密碼指認失敗！</h3>
+            <p>該數字無法滿足 4312 (2A2B) 的邏輯交叉比對結果。</p>
+        </div>
+        <a href="#stage3-question" class="btn-start" style="background-color: #ff9f43;">🔄 重新進行數字排查</a>
+    </div>
 
-        <p style="font-weight:bold; color:#a4b0be; margin-top:10px;">請進行最後的密碼指認：</p>
-        <label for="s3-w1" class="btn-label">3412</label>
-        <label for="s3-correct" class="btn-label" style="background-color:#10b981;">4321</label>
+    <!-- ⭕ 第三關答對（全破！） -->
+    <div id="stage3-correct" class="page-view">
+        <div class="msg-box msg-correct" style="background:#2f3542; color:#ffca28; border-color:#ffca28;">
+            <h3>🏆 三重腦力極限全數擊破！</h3>
+            <p>正確解密密碼確實是【 4 3 2 1 】！</p>
+            <p>你看著上方的分數動態沙漏，成功在時間耗盡前，用完美的智商擊碎了所有難關！你太強了！</p>
+        </div>
+        <a href="#home-screen" class="btn-start" style="background-color: #7c3aed;">🔄 重新開啟全新挑戰</a>
+    </div>
+
+</div>
+
+</body>
+</html>
