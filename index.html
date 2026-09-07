@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ 終極速破！每日 AI 三重腦力極限遊戲盒</title>
+    <title>⚡ 終極硬核！每日 AI 三重推理盒</title>
     <style>
         body {
             font-family: sans-serif, "Microsoft JhengHei";
@@ -27,19 +27,6 @@
             border: 1px solid #3f222a;
         }
         h1 { color: #f43f5e; margin-top: 0; font-size: 24px; letter-spacing: 1px; }
-        .score-board {
-            display: flex;
-            justify-content: space-around;
-            background: #222235;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 15px;
-            font-weight: bold;
-            border: 1px solid #373754;
-        }
-        .score-val { color: #facc15; }
-        .timer-text { color: #f43f5e; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
         .game-title {
             font-size: 17px;
             font-weight: bold;
@@ -49,6 +36,7 @@
             padding: 10px;
             border-radius: 6px;
             border-left: 4px solid #f43f5e;
+            text-align: center;
         }
         .game-box {
             background: #0f0f12;
@@ -56,185 +44,120 @@
             border-radius: 12px;
             margin-bottom: 20px;
             border: 1px dashed #ef4444;
+            text-align: left;
         }
-        .btn {
-            background-color: #2563eb;
+        summary {
+            background-color: #10b981;
             color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 16px;
+            padding: 16px;
+            font-size: 20px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            margin: 8px;
-            transition: 0.1s;
+            list-style: none;
+            outline: none;
         }
-        .btn:hover { background-color: #1d4ed8; transform: scale(1.03); }
-        .btn-danger { background-color: #dc2626; }
-        .btn-danger:hover { background-color: #b91c1c; }
-        .btn-start { background-color: #10b981; font-size: 20px; width: 100%; padding: 16px; margin-top: 15px; border: none; color: white; border-radius: 8px; font-weight: bold; cursor: pointer;}
-        .btn-start:hover { background-color: #059669; }
-        .btn-share { background-color: #7c3aed; width: 100%; margin-top: 15px; border: none; color: white; border-radius: 8px; font-weight: bold; padding: 14px; cursor: pointer; }
-        .btn-share:hover { background-color: #6d28d9; }
+        summary:hover { background-color: #059669; }
+        .btn-wrong {
+            background-color: #dc2626; color: white; border: none;
+            padding: 12px 20px; font-size: 16px; font-weight: bold;
+            border-radius: 6px; cursor: pointer; margin: 8px;
+        }
+        .btn-wrong:active { background-color: #b91c1c; }
         
-        .num-input {
-            padding: 12px; font-size: 16px; width: 140px; border-radius: 6px;
-            border: 1px solid #4b5563; background: #27273a; color: white; text-align: center;
-            letter-spacing: 2px; font-weight: bold;
-        }
-        .log-box {
-            max-height: 120px; overflow-y: auto; text-align: left; 
-            background: #1c1c24; padding: 10px; border-radius: 6px; font-size: 14px;
+        details[open] summary { background-color: #3b82f6; }
+        .sub-details summary { background-color: #7c3aed; font-size: 16px; padding: 12px; }
+        .sub-details summary:hover { background-color: #6d28d9; }
+        
+        .ans-box {
+            padding: 15px; background: #222235; border-radius: 6px;
+            margin-top: 10px; font-weight: bold; color: #4ade80; border: 1px solid #4ade80;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>⚡ 終極速破！每日 AI 三重推理盒</h1>
-    
-    <div class="score-board">
-        <div>我的目前總積分: <span id="displayScore" class="score-val">0</span> 分</div>
-        <div>今日通關進度: <span id="progressText" style="color: #60a5fa;">0 / 3</span></div>
-    </div>
+    <h1>⚡ 終極硬核！每日 AI 三重推理盒</h1>
+    <p style="color: #a4b0be; margin-bottom: 25px;">※ 本版本採「超高相容純結構設計」，免除所有腳本卡死風險！</p>
 
-    <div class="timer-text">⏱️ 本關當前剩餘分值：<span id="timerScore">100</span> 分</div>
+    <!-- 🚩 關卡一：利用瀏覽器純靜態開啟機制 -->
+    <details>
+        <summary>🚨 點此展開 ➔【第一關：凱撒字體解密】</summary>
+        <div style="padding-top: 20px;">
+            <p style="color: #a4b0be; text-align: left;">情報員注意！英文暗號的每個字母都**被往後挪移了 2 格**：</p>
+            <div class="game-box">
+                <h2 style="color: #38bdf8; font-size: 36px; margin: 10px 0; letter-spacing: 4px; text-align: center;">🎯 暗號：【 K N K G 】</h2>
+                <p style="color: #6b7280; font-size: 13px; text-align: center;">（提示：將字母往前推 2 格還原，例如 C 往前推 2 格是 A）</p>
+            </div>
+            
+            <details class="sub-details">
+                <summary>👉 選擇答案：【 KING 】</summary>
+                <div class="ans-box" style="color: #f87171; border-color: #f87171; background: #2a151b;">❌ 破解失敗！KING 沒有對齊挪移規律！請合上此選項重新選擇。</div>
+            </details>
+            
+            <details class="sub-details" style="margin: 10px 0;">
+                <summary>👉 選擇答案：【 LIFE 】(正確答案)</summary>
+                <div class="ans-box">
+                    🎉 破譯成功！KNKG 往前推 2 格就是 LIFE！<br><br>
+                    鎖定此答案，請往下滑動挑戰下一關！👇
+                </div>
+            </details>
 
-    <!-- 🚩 初始歡迎與準備頁面 -->
-    <div id="startScreen">
-        <div class="game-box" style="border-color: #10b981; text-align: left;">
-            <h3 style="color: #10b981; margin-top:0;">🧠 挑戰規則說明：</h3>
-            <p>1. 你即將連續面對三道硬核考驗（凱撒密碼、雙重否定、0A0B）。</p>
-            <p>2. 每關初始分值為 <strong>100分</strong>，遊戲中<strong>每過 1 秒就會扣 2 分</strong>！</p>
-            <p>3. 答錯任何題目，該關分值會**額外重罰扣 10 分**！</p>
-            <p>4. 點擊下方按鈕後，計時器與第一題才會正式啟動！</p>
+            <details class="sub-details">
+                <summary>👉 選擇答案：【 MIND 】</summary>
+                <div class="ans-box" style="color: #f87171; border-color: #f87171; background: #2a151b;">❌ 密碼錯誤！大腦混亂了嗎？請合上此選項重新選擇。</div>
+            </details>
         </div>
-        <!-- 💡 徹底拔除 HTML 內行 onclick，完全改由底部的監聽器控制 -->
-        <button class="btn btn-start" id="mainStartBtn">🚨 準備好了，開始挑戰！</button>
-    </div>
+    </details>
 
-    <!-- 🎮 第一關：凱撒密碼文字解密 -->
-    <div id="stage1" style="display:none;">
-        <div class="game-title">【第一關：凱撒字體解密】</div>
-        <p style="color: #a4b0be;">情報員注意！英文暗號的每個字母都**被往後挪移了 2 格**：</p>
-        <div class="game-box">
-            <h2 style="color: #38bdf8; font-size: 36px; margin: 10px 0; letter-spacing: 4px;">🎯 暗號：【 K N K G 】</h2>
-            <p style="color: #6b7280; font-size: 13px;">（提示：將字母往前推 2 格還原，例如 C 往前推 2 格是 A）</p>
-            <button class="btn" id="s1-w1">KING</button>
-            <button class="btn" id="s1-correct">LIFE</button>
-            <button class="btn" id="s1-w2">MIND</button>
+    <!-- 🚩 關卡二 -->
+    <details style="margin: 20px 0;">
+        <summary>🚨 點此展開 ➔【第二關：雙重否定指令地獄】</summary>
+        <div style="padding-top: 20px;">
+            <div class="game-box">
+                <h3 style="font-size: 22px; color: #facc15; margin-top: 5px; text-align: center;">「請不要不點擊『非右邊』的相反」</h3>
+                <p style="color: #6b7280; font-size: 13px; text-align: center;">（提示拆解：非右邊=左，左的相反=右，不要不點=要點）</p>
+            </div>
+            
+            <details class="sub-details">
+                <summary>👉 選擇指令：【 ⬅️ 往左 】</summary>
+                <div class="ans-box" style="color: #f87171; border-color: #f87171; background: #2a151b;">❌ 掉進雙重否定的陷阱了！請合上此選項重新選擇。</div>
+            </details>
+            
+            <details class="sub-details" style="margin-top: 10px;">
+                <summary>👉 選擇指令：【 ➡️ 往右 】(正確答案)</summary>
+                <div class="ans-box">
+                    🎉 強大！大腦邏輯神經成功繞過陷阱！正確答案為往右！<br><br>
+                    鎖定此答案，請往下滑動挑戰最終關！👇
+                </div>
+            </details>
         </div>
-    </div>
+    </details>
 
-    <!-- 🎮 第二關：邏輯指令地獄 -->
-    <div id="stage2" style="display:none;">
-        <div class="game-title">【第二關：雙重否定指令地獄】</div>
-        <p style="color: #fb7185; font-weight: bold; font-size: 18px;">🚨 魔王邏輯陷阱提示：</p>
-        <div class="game-box">
-            <h3 style="font-size: 22px; color: #facc15; margin-top: 5px;">「請不要不點擊『非右邊』的相反」</h3>
-            <p style="color: #6b7280; font-size: 13px;">（提示拆解：非右邊=左，左的相反=右，不要不點=要點 ➔ 答案：右）</p>
-            <button class="btn btn-danger" id="s2-w1">⬅️ 點我往左</button>
-            <button class="btn btn-danger" id="s2-correct">➡️ 點我往右</button>
+    <!-- 🚩 關卡三 -->
+    <details>
+        <summary>🚨 點此展開 ➔【最終關：硬核終極密碼答案】</summary>
+        <div style="padding-top: 20px;">
+            <div class="game-box">
+                <p><strong>終極特工任務最後一步：</strong></p>
+                <p>今天的每日隨機密碼經 AI 計算後，其數值特徵符合以下兩條線索：</p>
+                <p>1. 這是一個 4 位數，且 4 個數字完全不重複。</p>
+                <p>2. 當你輸入 <strong>1324</strong> 時，系統會回報 <strong>0A 2B</strong>；當你輸入 <strong>4312</strong> 時，系統會回報 <strong>2A 2B</strong>。</p>
+            </div>
+            
+            <details class="sub-details">
+                <summary>🔍 點此輸入/查看你的推理答案是否正確</summary>
+                <div class="ans-box" style="color: #facc15; border-color: #facc15;">
+                    💡 根據 4312 獲得 2A2B 的高級邏輯推導：<br>
+                    今天的正確終極安全密碼是：【 4 3 2 1 】！<br><br>
+                    🏆 恭喜你！全數通關！你成功捍衛了大腦的智商極限！
+                </div>
+            </details>
         </div>
-    </div>
+    </details>
 
-    <!-- 🎮 第三關：硬核 0A0B 猜數字 -->
-    <div id="stage3" style="display:none;">
-        <div class="game-title">【第三關：硬核邏輯 0A0B 猜數字】</div>
-        <p style="margin-bottom:5px;">神祕密碼是 4 個「不重複的數字」。回答次數不限！</p>
-        <div class="game-box">
-            <input type="text" id="guessInput" class="num-input" maxlength="4" placeholder="輸入4位數">
-            <button class="btn" style="background:#10b981; margin: 0 0 0 10px; padding: 12px 20px;" id="s3-submit">指認密碼</button>
-            <h4 style="margin: 15px 0 5px 0; text-align: left; color:#a4b0be;">🕵️ 推理歷史紀錄：</h4>
-            <div class="log-box" id="logBox">（尚未輸入任何猜測...）</div>
-        </div>
-    </div>
-
-    <div id="resultText" style="margin-top:15px; padding:12px; border-radius:6px; font-weight:bold; background:#222235; display:none;"></div>
-
-    <!-- 🔄 再戰一輪區域 -->
-    <div id="restartGameArea" style="display:none; margin-top:15px;">
-        <button class="btn btn-start" style="background:#ff9f43;" id="gameRestartBtn">🔄 再戰一輪（保留當前積分）</button>
-    </div>
-
-    <button class="btn btn-share" id="gameShareBtn">✉️ 複製目前戰績，向朋友發起降智打擊！</button>
 </div>
 
-<!-- ⚙️ 核心全功能「主動注入式監聽器」，100% 避開安全機制攔截 -->
-<script>
-    var currentScore = 0;
-    var currentStageNum = 0;
-    var stageTimerScore = 100; 
-    var timerInterval = null;
-    var secretCode = "";
-
-    // 1. 初始化讀取
-    var urlParams = new URLSearchParams(window.location.search);
-    var urlScore = urlParams.get('score');
-    if (urlScore !== null && !isNaN(urlScore)) {
-        currentScore = parseInt(urlScore);
-    }
-    document.getElementById("displayScore").innerText = currentScore;
-    generateNewSecretCode();
-
-    // 2. 使用高安全性的 DOM 監聽器主動抓取按鈕，完全不踩 onclick 封鎖線
-    document.getElementById("mainStartBtn").addEventListener("click", function() {
-        document.getElementById("startScreen").style.display = "none";
-        document.getElementById("stage1").style.display = "block";
-        document.getElementById("stage2").style.display = "none";
-        document.getElementById("stage3").style.display = "none";
-        document.getElementById("restartGameArea").style.display = "none";
-        currentStageNum = 1;
-        document.getElementById("progressText").innerText = "1 / 3";
-        document.getElementById("resultText").style.display = "none";
-        startTimer();
-    });
-
-    document.getElementById("s1-correct").addEventListener("click", function() { nextStage(); });
-    document.getElementById("s1-w1").addEventListener("click", function() { wrongAnswer(); });
-    document.getElementById("s1-w2").addEventListener("click", function() { wrongAnswer(); });
-
-    document.getElementById("s2-correct").addEventListener("click", function() { nextStage(); });
-    document.getElementById("s2-w1").addEventListener("click", function() { wrongAnswer(); });
-
-    document.getElementById("s3-submit").addEventListener("click", function() { check0A0B(); });
-    document.getElementById("gameRestartBtn").addEventListener("click", function() { restartFullGame(); });
-    document.getElementById("gameShareBtn").addEventListener("click", function() { shareToFriend(); });
-
-
-    function generateNewSecretCode() {
-        var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-        digits.sort(function() { return 0.5 - Math.random(); });
-        secretCode = digits.slice(0, 4).join("");
-    }
-
-    function startTimer() {
-        stageTimerScore = 100;
-        document.getElementById("timerScore").innerText = stageTimerScore;
-        if (timerInterval !== null) clearInterval(timerInterval);
-        
-        timerInterval = setInterval(function() {
-            if (stageTimerScore > 0) {
-                stageTimerScore -= 2;
-                if (stageTimerScore < 0) stageTimerScore = 0;
-                document.getElementById("timerScore").innerText = stageTimerScore;
-            }
-        }, 1000);
-    }
-
-    function wrongAnswer() {
-        var r = document.getElementById("resultText");
-        r.style.display = "block";
-        r.style.color = "#f87171";
-        r.innerText = "❌ 答錯了！大腦混亂中...（時間分值額外折損 10 分）";
-        
-        stageTimerScore -= 10;
-        if (stageTimerScore < 0) stageTimerScore = 0;
-        document.getElementById("timerScore").innerText = stageTimerScore;
-    }
-
-    function nextStage() {
-        currentScore += stageTimerScore;
-        document.getElementById("displayScore").innerText = currentScore;
-        
-        var r = document.getElementById("resultText");
+</body>
+</html>
