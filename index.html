@@ -109,7 +109,8 @@
             <p>3. 答錯任何題目，該關分值會**額外重罰扣 10 分**！</p>
             <p>4. 點擊下方按鈕後，計時器與第一題才會正式啟動！</p>
         </div>
-        <button class="btn btn-start" onclick="startGameNow()">🚨 準備好了，開始挑戰！</button>
+        <!-- 使用安全原生的 id 綁定監聽器，拒絕行內語法 -->
+        <button class="btn btn-start" id="realStartBtn">🚨 準備好了，開始挑戰！</button>
     </div>
 
     <!-- 🎮 第一關：凱撒密碼文字解密 -->
@@ -159,29 +160,29 @@
     <button class="btn btn-share" onclick="shareToFriend()">✉️ 複製目前戰績，向朋友發起降智打擊！</button>
 </div>
 
-<!-- ⚙️ 核心邏輯移至最底部，確保所有畫面先百分之百畫出來，防範任何黑畫面崩潰 -->
 <script>
+    // 🛡️ 初始化全域安全變數，避免重複宣告崩潰
     var currentScore = 0;
     var currentStageNum = 0;
     var stageTimerScore = 100; 
-    var timerInterval;
+    var timerInterval = null;
     var secretCode = "";
 
-    // 網址分數接收
+    // 1. 抓取網址分數（加入防空防錯保護機制）
     var urlParams = new URLSearchParams(window.location.search);
-    currentScore = parseInt(urlParams.get('score')) || 0;
+    var urlScore = urlParams.get('score');
+    if (urlScore !== null && !isNaN(urlScore)) {
+        currentScore = parseInt(urlScore);
+    } else {
+        currentScore = 0;
+    }
     document.getElementById("displayScore").innerText = currentScore;
     
-    // 生成密碼
+    // 生成隨機密碼
     generateNewSecretCode();
 
-    function generateNewSecretCode() {
-        var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-        digits.sort(function() { return 0.5 - Math.random(); });
-        secretCode = digits.slice(0, 4).join("");
-    }
-
-    function startGameNow() {
+    // 2. 徹底重寫按鈕綁定機制：使用純監聽器，確保100%能點擊出招
+    document.getElementById("realStartBtn").addEventListener("click", function() {
         document.getElementById("startScreen").style.display = "none";
         document.getElementById("stage1").style.display = "block";
         document.getElementById("stage2").style.display = "none";
@@ -191,17 +192,27 @@
         document.getElementById("progressText").innerText = "1 / 3";
         document.getElementById("resultText").style.display = "none";
         startTimer();
+    });
+
+    function generateNewSecretCode() {
+        var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        digits.sort(function() { return 0.5 - Math.random(); });
+        secretCode = digits.slice(0, 4).join("");
     }
 
     function startTimer() {
         stageTimerScore = 100;
         document.getElementById("timerScore").innerText = stageTimerScore;
-        clearInterval(timerInterval);
+        if (timerInterval !== null) {
+            clearInterval(timerInterval);
+        }
         
         timerInterval = setInterval(function() {
             if (stageTimerScore > 0) {
                 stageTimerScore -= 2;
-                if (stageTimerScore < 0) stageTimerScore = 0;
+                if (stageTimerScore < 0) {
+                    stageTimerScore = 0;
+                }
                 document.getElementById("timerScore").innerText = stageTimerScore;
             }
         }, 1000);
@@ -237,13 +248,3 @@
         } else if (currentStageNum === 3) {
             document.getElementById("progressText").innerText = "3 / 3";
             document.getElementById("stage2").style.display = "none";
-            document.getElementById("stage3").style.display = "block";
-            startTimer();
-        }
-    }
-
-    function check0A0B() {
-        var input = document.getElementById("guessInput").value.trim();
-        var r = document.getElementById("resultText");
-        
-        if (input.length !== 4 || isNaN(input)) {
