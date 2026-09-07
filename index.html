@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚡ 終極速破！每日 AI 三重腦力極限遊戲盒</title>
     
-    <!-- ⚙️ 將核心邏輯移至最頂端，確保瀏覽器讀取按鈕前，函式已100%就緒，絕對不再卡死 -->
     <script>
         var currentScore = 0;
         var currentStageNum = 0;
@@ -13,7 +12,7 @@
         var timerInterval;
         var secretCode = "";
 
-        // 接收網址分數
+        // 網頁載入時啟動
         window.onload = function() {
             var urlParams = new URLSearchParams(window.location.search);
             currentScore = parseInt(urlParams.get('score')) || 0;
@@ -21,19 +20,20 @@
             generateNewSecretCode();
         };
 
-        // 0A0B 隨機答案生成
+        // 0A0B 隨機密碼生成
         function generateNewSecretCode() {
             var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
             digits.sort(function() { return 0.5 - Math.random(); });
             secretCode = digits.slice(0, 4).join("");
         }
 
-        // 🚨 點擊開始挑戰，瞬間炸開關卡並啟動計時
+        // 開始挑戰
         function startGameNow() {
             document.getElementById("startScreen").style.display = "none";
             document.getElementById("stage1").style.display = "block";
             document.getElementById("stage2").style.display = "none";
             document.getElementById("stage3").style.display = "none";
+            document.getElementById("restartGameArea").style.display = "none";
             currentStageNum = 1;
             document.getElementById("progressText").innerText = "1 / 3";
             document.getElementById("resultText").style.display = "none";
@@ -45,7 +45,6 @@
             document.getElementById("timerScore").innerText = stageTimerScore;
             clearInterval(timerInterval);
             
-            // 每 1 秒扣 2 分
             timerInterval = setInterval(function() {
                 if (stageTimerScore > 0) {
                     stageTimerScore -= 2;
@@ -131,7 +130,10 @@
                 document.getElementById("progressText").innerText = "🎉 已全數通關";
                 r.style.display = "block";
                 r.style.color = "#4ade80";
-                r.innerHTML = "🏆 恭喜大豐收！今日三重考驗全數擊破！<br>第三關獲得： " + stageTimerScore + " 分！<br><br><button class='btn btn-start' style='font-size:16px; padding:10px;' onclick='restartFullGame()'>🔄 再戰一輪（保留積分）</button>";
+                r.innerText = "🏆 恭喜大豐收！今日三重考驗全數擊破！第三關獲得： " + stageTimerScore + " 分！";
+                
+                // 亮起底部的靜態重玩區域
+                document.getElementById("restartGameArea").style.display = "block";
             } else {
                 r.style.display = "block";
                 r.style.color = "#facc15";
@@ -145,6 +147,7 @@
             document.getElementById("guessInput").value = "";
             document.getElementById("stage3").style.display = "none";
             document.getElementById("startScreen").style.display = "block";
+            document.getElementById("restartGameArea").style.display = "none";
             document.getElementById("progressText").innerText = "0 / 3";
             document.getElementById("timerScore").innerText = "100";
             document.getElementById("resultText").style.display = "none";
@@ -233,7 +236,7 @@
         .btn-danger:hover { background-color: #b91c1c; }
         .btn-start { background-color: #10b981; font-size: 20px; width: 100%; padding: 16px; margin-top: 15px; border: none; color: white; border-radius: 8px; font-weight: bold; cursor: pointer;}
         .btn-start:hover { background-color: #059669; }
-        .btn-share { background-color: #7c3aed; width: 100%; margin-top: 15px; }
+        .btn-share { background-color: #7c3aed; width: 100%; margin-top: 15px; border: none; color: white; border-radius: 8px; font-weight: bold; padding: 14px; cursor: pointer; }
         .btn-share:hover { background-color: #6d28d9; }
         
         .num-input {
@@ -243,13 +246,3 @@
         }
         .log-box {
             max-height: 120px; overflow-y: auto; text-align: left; 
-            background: #1c1c24; padding: 10px; border-radius: 6px; font-size: 14px;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>⚡ 終極速破！每日 AI 三重推理盒</h1>
-    
-    <div class="score-board">
