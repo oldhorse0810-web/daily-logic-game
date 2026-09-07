@@ -109,8 +109,8 @@
             <p>3. 答錯任何題目，該關分值會**額外重罰扣 10 分**！</p>
             <p>4. 點擊下方按鈕後，計時器與第一題才會正式啟動！</p>
         </div>
-        <!-- 使用安全原生的 id 綁定監聽器，拒絕行內語法 -->
-        <button class="btn btn-start" id="realStartBtn">🚨 準備好了，開始挑戰！</button>
+        <!-- 💡 徹底拔除 HTML 內行 onclick，完全改由底部的監聽器控制 -->
+        <button class="btn btn-start" id="mainStartBtn">🚨 準備好了，開始挑戰！</button>
     </div>
 
     <!-- 🎮 第一關：凱撒密碼文字解密 -->
@@ -120,9 +120,9 @@
         <div class="game-box">
             <h2 style="color: #38bdf8; font-size: 36px; margin: 10px 0; letter-spacing: 4px;">🎯 暗號：【 K N K G 】</h2>
             <p style="color: #6b7280; font-size: 13px;">（提示：將字母往前推 2 格還原，例如 C 往前推 2 格是 A）</p>
-            <button class="btn" onclick="wrongAnswer()">KING</button>
-            <button class="btn" onclick="nextStage()">LIFE</button>
-            <button class="btn" onclick="wrongAnswer()">MIND</button>
+            <button class="btn" id="s1-w1">KING</button>
+            <button class="btn" id="s1-correct">LIFE</button>
+            <button class="btn" id="s1-w2">MIND</button>
         </div>
     </div>
 
@@ -133,8 +133,8 @@
         <div class="game-box">
             <h3 style="font-size: 22px; color: #facc15; margin-top: 5px;">「請不要不點擊『非右邊』的相反」</h3>
             <p style="color: #6b7280; font-size: 13px;">（提示拆解：非右邊=左，左的相反=右，不要不點=要點 ➔ 答案：右）</p>
-            <button class="btn btn-danger" onclick="wrongAnswer()">⬅️ 點我往左</button>
-            <button class="btn btn-danger" onclick="nextStage()">➡️ 點我往右</button>
+            <button class="btn btn-danger" id="s2-w1">⬅️ 點我往左</button>
+            <button class="btn btn-danger" id="s2-correct">➡️ 點我往右</button>
         </div>
     </div>
 
@@ -144,7 +144,7 @@
         <p style="margin-bottom:5px;">神祕密碼是 4 個「不重複的數字」。回答次數不限！</p>
         <div class="game-box">
             <input type="text" id="guessInput" class="num-input" maxlength="4" placeholder="輸入4位數">
-            <button class="btn" style="background:#10b981; margin: 0 0 0 10px; padding: 12px 20px;" onclick="check0A0B()">指認密碼</button>
+            <button class="btn" style="background:#10b981; margin: 0 0 0 10px; padding: 12px 20px;" id="s3-submit">指認密碼</button>
             <h4 style="margin: 15px 0 5px 0; text-align: left; color:#a4b0be;">🕵️ 推理歷史紀錄：</h4>
             <div class="log-box" id="logBox">（尚未輸入任何猜測...）</div>
         </div>
@@ -154,35 +154,31 @@
 
     <!-- 🔄 再戰一輪區域 -->
     <div id="restartGameArea" style="display:none; margin-top:15px;">
-        <button class="btn btn-start" style="background:#ff9f43;" onclick="restartFullGame()">🔄 再戰一輪（保留當前積分）</button>
+        <button class="btn btn-start" style="background:#ff9f43;" id="gameRestartBtn">🔄 再戰一輪（保留當前積分）</button>
     </div>
 
-    <button class="btn btn-share" onclick="shareToFriend()">✉️ 複製目前戰績，向朋友發起降智打擊！</button>
+    <button class="btn btn-share" id="gameShareBtn">✉️ 複製目前戰績，向朋友發起降智打擊！</button>
 </div>
 
+<!-- ⚙️ 核心全功能「主動注入式監聽器」，100% 避開安全機制攔截 -->
 <script>
-    // 🛡️ 初始化全域安全變數，避免重複宣告崩潰
     var currentScore = 0;
     var currentStageNum = 0;
     var stageTimerScore = 100; 
     var timerInterval = null;
     var secretCode = "";
 
-    // 1. 抓取網址分數（加入防空防錯保護機制）
+    // 1. 初始化讀取
     var urlParams = new URLSearchParams(window.location.search);
     var urlScore = urlParams.get('score');
     if (urlScore !== null && !isNaN(urlScore)) {
         currentScore = parseInt(urlScore);
-    } else {
-        currentScore = 0;
     }
     document.getElementById("displayScore").innerText = currentScore;
-    
-    // 生成隨機密碼
     generateNewSecretCode();
 
-    // 2. 徹底重寫按鈕綁定機制：使用純監聽器，確保100%能點擊出招
-    document.getElementById("realStartBtn").addEventListener("click", function() {
+    // 2. 使用高安全性的 DOM 監聽器主動抓取按鈕，完全不踩 onclick 封鎖線
+    document.getElementById("mainStartBtn").addEventListener("click", function() {
         document.getElementById("startScreen").style.display = "none";
         document.getElementById("stage1").style.display = "block";
         document.getElementById("stage2").style.display = "none";
@@ -194,6 +190,18 @@
         startTimer();
     });
 
+    document.getElementById("s1-correct").addEventListener("click", function() { nextStage(); });
+    document.getElementById("s1-w1").addEventListener("click", function() { wrongAnswer(); });
+    document.getElementById("s1-w2").addEventListener("click", function() { wrongAnswer(); });
+
+    document.getElementById("s2-correct").addEventListener("click", function() { nextStage(); });
+    document.getElementById("s2-w1").addEventListener("click", function() { wrongAnswer(); });
+
+    document.getElementById("s3-submit").addEventListener("click", function() { check0A0B(); });
+    document.getElementById("gameRestartBtn").addEventListener("click", function() { restartFullGame(); });
+    document.getElementById("gameShareBtn").addEventListener("click", function() { shareToFriend(); });
+
+
     function generateNewSecretCode() {
         var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
         digits.sort(function() { return 0.5 - Math.random(); });
@@ -203,16 +211,12 @@
     function startTimer() {
         stageTimerScore = 100;
         document.getElementById("timerScore").innerText = stageTimerScore;
-        if (timerInterval !== null) {
-            clearInterval(timerInterval);
-        }
+        if (timerInterval !== null) clearInterval(timerInterval);
         
         timerInterval = setInterval(function() {
             if (stageTimerScore > 0) {
                 stageTimerScore -= 2;
-                if (stageTimerScore < 0) {
-                    stageTimerScore = 0;
-                }
+                if (stageTimerScore < 0) stageTimerScore = 0;
                 document.getElementById("timerScore").innerText = stageTimerScore;
             }
         }, 1000);
@@ -234,17 +238,3 @@
         document.getElementById("displayScore").innerText = currentScore;
         
         var r = document.getElementById("resultText");
-        r.style.display = "block";
-        r.style.color = "#4ade80";
-        r.innerText = "🎉 答對了！成功斬獲 " + stageTimerScore + " 分！快速進入下一關！";
-
-        currentStageNum++;
-        
-        if (currentStageNum === 2) {
-            document.getElementById("progressText").innerText = "2 / 3";
-            document.getElementById("stage1").style.display = "none";
-            document.getElementById("stage2").style.display = "block";
-            startTimer();
-        } else if (currentStageNum === 3) {
-            document.getElementById("progressText").innerText = "3 / 3";
-            document.getElementById("stage2").style.display = "none";
