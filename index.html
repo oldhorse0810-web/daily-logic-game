@@ -4,168 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚡ 終極速破！每日 AI 三重腦力極限遊戲盒</title>
-    
-    <script>
-        var currentScore = 0;
-        var currentStageNum = 0;
-        var stageTimerScore = 100; 
-        var timerInterval;
-        var secretCode = "";
-
-        // 網頁載入時啟動
-        window.onload = function() {
-            var urlParams = new URLSearchParams(window.location.search);
-            currentScore = parseInt(urlParams.get('score')) || 0;
-            document.getElementById("displayScore").innerText = currentScore;
-            generateNewSecretCode();
-        };
-
-        // 0A0B 隨機密碼生成
-        function generateNewSecretCode() {
-            var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-            digits.sort(function() { return 0.5 - Math.random(); });
-            secretCode = digits.slice(0, 4).join("");
-        }
-
-        // 開始挑戰
-        function startGameNow() {
-            document.getElementById("startScreen").style.display = "none";
-            document.getElementById("stage1").style.display = "block";
-            document.getElementById("stage2").style.display = "none";
-            document.getElementById("stage3").style.display = "none";
-            document.getElementById("restartGameArea").style.display = "none";
-            currentStageNum = 1;
-            document.getElementById("progressText").innerText = "1 / 3";
-            document.getElementById("resultText").style.display = "none";
-            startTimer();
-        }
-
-        function startTimer() {
-            stageTimerScore = 100;
-            document.getElementById("timerScore").innerText = stageTimerScore;
-            clearInterval(timerInterval);
-            
-            timerInterval = setInterval(function() {
-                if (stageTimerScore > 0) {
-                    stageTimerScore -= 2;
-                    if (stageTimerScore < 0) stageTimerScore = 0;
-                    document.getElementById("timerScore").innerText = stageTimerScore;
-                }
-            }, 1000);
-        }
-
-        function wrongAnswer() {
-            var r = document.getElementById("resultText");
-            r.style.display = "block";
-            r.style.color = "#f87171";
-            r.innerText = "❌ 答錯了！大腦混亂中...（時間分值額外折損 10 分）";
-            
-            stageTimerScore -= 10;
-            if (stageTimerScore < 0) stageTimerScore = 0;
-            document.getElementById("timerScore").innerText = stageTimerScore;
-        }
-
-        function nextStage() {
-            currentScore += stageTimerScore;
-            document.getElementById("displayScore").innerText = currentScore;
-            
-            var r = document.getElementById("resultText");
-            r.style.display = "block";
-            r.style.color = "#4ade80";
-            r.innerText = "🎉 答對了！成功斬獲 " + stageTimerScore + " 分！快速進入下一關！";
-
-            currentStageNum++;
-            
-            if (currentStageNum === 2) {
-                document.getElementById("progressText").innerText = "2 / 3";
-                document.getElementById("stage1").style.display = "none";
-                document.getElementById("stage2").style.display = "block";
-                startTimer();
-            } else if (currentStageNum === 3) {
-                document.getElementById("progressText").innerText = "3 / 3";
-                document.getElementById("stage2").style.display = "none";
-                document.getElementById("stage3").style.display = "block";
-                startTimer();
-            }
-        }
-
-        function check0A0B() {
-            var input = document.getElementById("guessInput").value.trim();
-            var r = document.getElementById("resultText");
-            
-            if (input.length !== 4 || isNaN(input)) {
-                alert("請精確輸入 4 個純數字！");
-                return;
-            }
-            
-            var hasDuplicate = false;
-            for (var d = 0; d < 4; d++) {
-                if (input.indexOf(input.charAt(d)) !== input.lastIndexOf(input.charAt(d))) {
-                    hasDuplicate = true;
-                }
-            }
-            if (hasDuplicate) {
-                alert("數字不能重複！");
-                return;
-            }
-            
-            var a = 0, b = 0;
-            for (var i = 0; i < 4; i++) {
-                if (input.charAt(i) === secretCode.charAt(i)) {
-                    a++;
-                } else if (secretCode.indexOf(input.charAt(i)) !== -1) {
-                    b++;
-                }
-            }
-            
-            var logBox = document.getElementById("logBox");
-            if(logBox.innerText.indexOf("尚未輸入") !== -1) logBox.innerHTML = "";
-            logBox.innerHTML += "<div>🤔 嘗試 <strong>" + input + "</strong> ➜ 獲得 <strong>" + a + "A " + b + "B</strong></div>";
-            
-            if (a === 4) {
-                clearInterval(timerInterval);
-                currentScore += stageTimerScore;
-                document.getElementById("displayScore").innerText = currentScore;
-                
-                document.getElementById("progressText").innerText = "🎉 已全數通關";
-                r.style.display = "block";
-                r.style.color = "#4ade80";
-                r.innerText = "🏆 恭喜大豐收！今日三重考驗全數擊破！第三關獲得： " + stageTimerScore + " 分！";
-                
-                // 亮起底部的靜態重玩區域
-                document.getElementById("restartGameArea").style.display = "block";
-            } else {
-                r.style.display = "block";
-                r.style.color = "#facc15";
-                r.innerText = "❌ 密碼不對！獲得 " + a + "A " + b + "B。時間正在流逝，抓緊時間！";
-            }
-        }
-
-        function restartFullGame() {
-            generateNewSecretCode();
-            document.getElementById("logBox").innerHTML = "（尚未輸入任何猜測...）";
-            document.getElementById("guessInput").value = "";
-            document.getElementById("stage3").style.display = "none";
-            document.getElementById("startScreen").style.display = "block";
-            document.getElementById("restartGameArea").style.display = "none";
-            document.getElementById("progressText").innerText = "0 / 3";
-            document.getElementById("timerScore").innerText = "100";
-            document.getElementById("resultText").style.display = "none";
-        }
-
-        function shareToFriend() {
-            var baseUrl = window.location.href.split('?');
-            var shareUrl = baseUrl[0] + "?score=" + currentScore;
-            var tempInput = document.createElement("input");
-            tempInput.value = shareUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand("copy");
-            document.body.removeChild(tempInput);
-            alert("🔗 戰帖複製成功！發給朋友，看他們在三關連續壓迫下，最後的總分能不能超越你的「 " + currentScore + " 分」！");
-        }
-    </script>
-
     <style>
         body {
             font-family: sans-serif, "Microsoft JhengHei";
@@ -246,3 +84,166 @@
         }
         .log-box {
             max-height: 120px; overflow-y: auto; text-align: left; 
+            background: #1c1c24; padding: 10px; border-radius: 6px; font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚡ 終極速破！每日 AI 三重推理盒</h1>
+    
+    <div class="score-board">
+        <div>我的目前總積分: <span id="displayScore" class="score-val">0</span> 分</div>
+        <div>今日通關進度: <span id="progressText" style="color: #60a5fa;">0 / 3</span></div>
+    </div>
+
+    <div class="timer-text">⏱️ 本關當前剩餘分值：<span id="timerScore">100</span> 分</div>
+
+    <!-- 🚩 初始歡迎與準備頁面 -->
+    <div id="startScreen">
+        <div class="game-box" style="border-color: #10b981; text-align: left;">
+            <h3 style="color: #10b981; margin-top:0;">🧠 挑戰規則說明：</h3>
+            <p>1. 你即將連續面對三道硬核考驗（凱撒密碼、雙重否定、0A0B）。</p>
+            <p>2. 每關初始分值為 <strong>100分</strong>，遊戲中<strong>每過 1 秒就會扣 2 分</strong>！</p>
+            <p>3. 答錯任何題目，該關分值會**額外重罰扣 10 分**！</p>
+            <p>4. 點擊下方按鈕後，計時器與第一題才會正式啟動！</p>
+        </div>
+        <button class="btn btn-start" onclick="startGameNow()">🚨 準備好了，開始挑戰！</button>
+    </div>
+
+    <!-- 🎮 第一關：凱撒密碼文字解密 -->
+    <div id="stage1" style="display:none;">
+        <div class="game-title">【第一關：凱撒字體解密】</div>
+        <p style="color: #a4b0be;">情報員注意！英文暗號的每個字母都**被往後挪移了 2 格**：</p>
+        <div class="game-box">
+            <h2 style="color: #38bdf8; font-size: 36px; margin: 10px 0; letter-spacing: 4px;">🎯 暗號：【 K N K G 】</h2>
+            <p style="color: #6b7280; font-size: 13px;">（提示：將字母往前推 2 格還原，例如 C 往前推 2 格是 A）</p>
+            <button class="btn" onclick="wrongAnswer()">KING</button>
+            <button class="btn" onclick="nextStage()">LIFE</button>
+            <button class="btn" onclick="wrongAnswer()">MIND</button>
+        </div>
+    </div>
+
+    <!-- 🎮 第二關：邏輯指令地獄 -->
+    <div id="stage2" style="display:none;">
+        <div class="game-title">【第二關：雙重否定指令地獄】</div>
+        <p style="color: #fb7185; font-weight: bold; font-size: 18px;">🚨 魔王邏輯陷阱提示：</p>
+        <div class="game-box">
+            <h3 style="font-size: 22px; color: #facc15; margin-top: 5px;">「請不要不點擊『非右邊』的相反」</h3>
+            <p style="color: #6b7280; font-size: 13px;">（提示拆解：非右邊=左，左的相反=右，不要不點=要點 ➔ 答案：右）</p>
+            <button class="btn btn-danger" onclick="wrongAnswer()">⬅️ 點我往左</button>
+            <button class="btn btn-danger" onclick="nextStage()">➡️ 點我往右</button>
+        </div>
+    </div>
+
+    <!-- 🎮 第三關：硬核 0A0B 猜數字 -->
+    <div id="stage3" style="display:none;">
+        <div class="game-title">【第三關：硬核邏輯 0A0B 猜數字】</div>
+        <p style="margin-bottom:5px;">神祕密碼是 4 個「不重複的數字」。回答次數不限！</p>
+        <div class="game-box">
+            <input type="text" id="guessInput" class="num-input" maxlength="4" placeholder="輸入4位數">
+            <button class="btn" style="background:#10b981; margin: 0 0 0 10px; padding: 12px 20px;" onclick="check0A0B()">指認密碼</button>
+            <h4 style="margin: 15px 0 5px 0; text-align: left; color:#a4b0be;">🕵️ 推理歷史紀錄：</h4>
+            <div class="log-box" id="logBox">（尚未輸入任何猜測...）</div>
+        </div>
+    </div>
+
+    <div id="resultText" style="margin-top:15px; padding:12px; border-radius:6px; font-weight:bold; background:#222235; display:none;"></div>
+
+    <!-- 🔄 再戰一輪區域 -->
+    <div id="restartGameArea" style="display:none; margin-top:15px;">
+        <button class="btn btn-start" style="background:#ff9f43;" onclick="restartFullGame()">🔄 再戰一輪（保留當前積分）</button>
+    </div>
+
+    <button class="btn btn-share" onclick="shareToFriend()">✉️ 複製目前戰績，向朋友發起降智打擊！</button>
+</div>
+
+<!-- ⚙️ 核心邏輯移至最底部，確保所有畫面先百分之百畫出來，防範任何黑畫面崩潰 -->
+<script>
+    var currentScore = 0;
+    var currentStageNum = 0;
+    var stageTimerScore = 100; 
+    var timerInterval;
+    var secretCode = "";
+
+    // 網址分數接收
+    var urlParams = new URLSearchParams(window.location.search);
+    currentScore = parseInt(urlParams.get('score')) || 0;
+    document.getElementById("displayScore").innerText = currentScore;
+    
+    // 生成密碼
+    generateNewSecretCode();
+
+    function generateNewSecretCode() {
+        var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        digits.sort(function() { return 0.5 - Math.random(); });
+        secretCode = digits.slice(0, 4).join("");
+    }
+
+    function startGameNow() {
+        document.getElementById("startScreen").style.display = "none";
+        document.getElementById("stage1").style.display = "block";
+        document.getElementById("stage2").style.display = "none";
+        document.getElementById("stage3").style.display = "none";
+        document.getElementById("restartGameArea").style.display = "none";
+        currentStageNum = 1;
+        document.getElementById("progressText").innerText = "1 / 3";
+        document.getElementById("resultText").style.display = "none";
+        startTimer();
+    }
+
+    function startTimer() {
+        stageTimerScore = 100;
+        document.getElementById("timerScore").innerText = stageTimerScore;
+        clearInterval(timerInterval);
+        
+        timerInterval = setInterval(function() {
+            if (stageTimerScore > 0) {
+                stageTimerScore -= 2;
+                if (stageTimerScore < 0) stageTimerScore = 0;
+                document.getElementById("timerScore").innerText = stageTimerScore;
+            }
+        }, 1000);
+    }
+
+    function wrongAnswer() {
+        var r = document.getElementById("resultText");
+        r.style.display = "block";
+        r.style.color = "#f87171";
+        r.innerText = "❌ 答錯了！大腦混亂中...（時間分值額外折損 10 分）";
+        
+        stageTimerScore -= 10;
+        if (stageTimerScore < 0) stageTimerScore = 0;
+        document.getElementById("timerScore").innerText = stageTimerScore;
+    }
+
+    function nextStage() {
+        currentScore += stageTimerScore;
+        document.getElementById("displayScore").innerText = currentScore;
+        
+        var r = document.getElementById("resultText");
+        r.style.display = "block";
+        r.style.color = "#4ade80";
+        r.innerText = "🎉 答對了！成功斬獲 " + stageTimerScore + " 分！快速進入下一關！";
+
+        currentStageNum++;
+        
+        if (currentStageNum === 2) {
+            document.getElementById("progressText").innerText = "2 / 3";
+            document.getElementById("stage1").style.display = "none";
+            document.getElementById("stage2").style.display = "block";
+            startTimer();
+        } else if (currentStageNum === 3) {
+            document.getElementById("progressText").innerText = "3 / 3";
+            document.getElementById("stage2").style.display = "none";
+            document.getElementById("stage3").style.display = "block";
+            startTimer();
+        }
+    }
+
+    function check0A0B() {
+        var input = document.getElementById("guessInput").value.trim();
+        var r = document.getElementById("resultText");
+        
+        if (input.length !== 4 || isNaN(input)) {
