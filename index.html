@@ -2,26 +2,233 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚡ 終極速破！每日 AI 三重推理盒</title>
     <style>
-        body { font-family: sans-serif; background-color: #0d0d11; color: #e4e4e7; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background-color: #161622; padding: 30px; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); max-width: 540px; width: 100%; text-align: center; border: 1px solid #3f222a; }
-        h1 { color: #f43f5e; margin-top: 0; font-size: 24px; }
-        .box { background: #0f0f12; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px dashed #ef4444; text-align: left; }
-        .btn-start { background-color: #10b981; font-size: 20px; width: 100%; padding: 16px; display: block; border-radius: 8px; color: white; font-weight: bold; text-decoration: none; box-sizing: border-box; }
+        body {
+            font-family: sans-serif, "Microsoft JhengHei";
+            background-color: #0d0d11;
+            color: #e4e4e7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #161622;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            max-width: 540px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid #3f222a;
+        }
+        h1 { color: #f43f5e; margin-top: 0; font-size: 24px; letter-spacing: 1px; }
+        
+        /* ⏱️ 實時倒數計時分值看板 */
+        .timer-zone {
+            font-size: 20px; font-weight: bold; color: #fcc419; margin: 15px 0;
+            background: #222235; padding: 12px; border-radius: 8px; border: 1px solid #373754;
+        }
+
+        .game-title {
+            font-size: 17px; font-weight: bold; color: #f43f5e; margin-bottom: 15px;
+            background: #2a151b; padding: 10px; border-radius: 6px; border-left: 4px solid #f43f5e;
+        }
+        .game-content-box { background: #0f0f12; padding: 25px; border-radius: 12px; margin-bottom: 20px; border: 1px dashed #ef4444; text-align: left; }
+        
+        /* 按鈕樣式 */
+        .btn {
+            background-color: #2563eb; color: white; padding: 14px 28px;
+            font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer;
+            margin: 8px; border: none; transition: 0.1s; display: inline-block;
+        }
+        .btn:hover { background-color: #1d4ed8; transform: scale(1.02); }
+        .btn-danger { background-color: #dc2626; }
+        .btn-danger:hover { background-color: #b91c1c; }
+        .btn-start { background-color: #10b981; font-size: 20px; width: 100%; padding: 16px; margin-top: 15px; border: none; color: white; border-radius: 8px; font-weight: bold; cursor: pointer; display: block; text-align: center; text-decoration: none; box-sizing: border-box; }
         .btn-start:hover { background-color: #059669; }
+
+        /* 答案反饋盒 */
+        .result-box { padding: 15px; border-radius: 6px; font-weight: bold; margin-top: 15px; text-align: left; display: none; }
+        .res-success { background-color: #10ac84; color: white; border: 1px solid #4ade80; }
+        .res-fail { background-color: #ee5253; color: white; border: 1px solid #f87171; }
+
+        /* 🎲 第三關專屬樣式 */
+        .num-input {
+            padding: 12px; font-size: 18px; width: 140px; border-radius: 6px;
+            border: 1px solid #4b5563; background: #27273a; color: white; text-align: center;
+            letter-spacing: 4px; font-weight: bold;
+        }
+        .log-box { max-height: 120px; overflow-y: auto; text-align: left; background: #0f0f12; padding: 12px; border-radius: 6px; font-size: 14px; margin-top: 10px; }
     </style>
 </head>
 <body>
+
 <div class="container">
     <h1>⚡ 終極速破！每日 AI 三重推理盒</h1>
-    <div class="box" style="border-color: #10b981;">
-        <h3 style="color: #10b981; margin-top:0;">🧠 核心特工規則說明：</h3>
-        <p>1. 你即將連續挑戰三道硬核考驗（凱撒密碼、雙重否定、終極密碼）。</p>
-        <p>2. <b>【真正每關獨立計分】</b>：每一關都有各自完全獨立的計分池，進去時都會全新從 100 分開啟倒數！</p>
-        <p>3. <b>【每秒精準扣 1 分】</b>：時間過得越久，該關得分就越少！點擊正確答案即可凍結看分！</p>
+    
+    <!-- ⏱️ 全球相容型：實時數字扣分看板 -->
+    <div class="timer-zone" id="timerDisplayZone" style="display: none;">
+        ⏱️ 本關當前剩餘分值：<span id="liveScoreNum" style="color: #f8f9fa; font-size: 24px;">100</span> 分
     </div>
-    <a href="stage1.html" class="btn-start">🚨 點燃沙漏 · 開始挑戰第一題！</a>
+
+    <!-- 🚩 0. 歡迎首頁 -->
+    <div id="startScreen">
+        <div class="game-content-box" style="border-color: #10b981;">
+            <h3 style="color: #10b981; margin-top:0;">🧠 核心特工規則說明：</h3>
+            <p>1. 連續挑戰三關。每關初始分值為 <strong>100 分</strong>，遊戲中<strong>每過 1 秒就會扣 1 分</strong>！</p>
+            <p>2. <b>【真實分數結算】</b>：答對的瞬間，系統會精準扣除所花秒數，當場亮出你這關得到幾分！</p>
+            <p>3. <b>【終極分數加總】</b>：最後通關時，網頁會自動把三關的分數加總，算出你的總得分紀錄！</p>
+        </div>
+        <button class="btn-start" onclick="startStage1()">🚨 點燃沙漏 · 開始挑戰！</button>
+    </div>
+
+    <!-- 🎮 第一關：凱撒字體解密 -->
+    <div id="stage1" style="display: none;">
+        <div class="game-title">【第一關：凱撒字體解密】</div>
+        <p style="color: #a4b0be; text-align: left;">情報員注意！英文暗號的每個字母都**被往後挪移了 2 格**：</p>
+        <div class="game-content-box">
+            <h2 style="color: #38bdf8; font-size: 36px; margin: 10px 0; letter-spacing: 4px; text-align: center;">🎯 暗號：【 N K H G 】</h2>
+            <p style="color: #6b7280; font-size: 13px; text-align: center;">（提示：將字母往前推 2 格還原。例如 N 退 2 格是 L）</p>
+        </div>
+        <button class="btn" onclick="triggerS1Wrong()">KING</button>
+        <button class="btn" onclick="submitS1Correct()">LIFE</button>
+        <button class="btn" onclick="triggerS1Wrong()">MIND</button>
+    </div>
+
+    <!-- 🎮 第二關：雙重否定 -->
+    <div id="stage2" style="display: none;">
+        <div class="game-title">【第二關：雙重否定指令地獄】</div>
+        <div class="game-content-box">
+            <h3 style="font-size: 20px; color: #facc15; margin-top: 5px; text-align: center;">「請不要不點擊『非右邊』的相反」</h3>
+        </div>
+        <button class="btn btn-danger" onclick="triggerS2Wrong()">⬅️ 點我往左</button>
+        <button class="btn btn-danger" onclick="submitS2Correct()">➡️ 點我往右</button>
+    </div>
+
+    <!-- 🎮 第三關：高級 0A0B 猜數字 -->
+    <div id="stage3" style="display: none;">
+        <div class="game-title">【最終關：硬核數字密碼推理】</div>
+        <div class="game-content-box">
+            <p><strong>安全防線特徵：</strong>這是一個 4 位數，且數字完全不重複：</p>
+            <p>• 輸入 1324 獲得 0A 2B | • 輸入 4312 獲得 2A 2B</p>
+        </div>
+        <input type="text" id="guessInput" class="num-input" maxlength="4" placeholder="4321">
+        <button class="btn" style="background:#10b981;" onclick="submitS3Check()">指認密碼</button>
+        <h4 style="margin: 15px 0 5px 0; text-align: left; color:#a4b0be;">🕵️ 推理歷史紀錄：</h4>
+        <div class="log-box" id="logBox">（尚未輸入任何猜測...）</div>
+    </div>
+
+    <!-- 📊 動態大字報回饋與各關得分看板（核心功能） -->
+    <div class="result-box" id="feedbackArea">
+        <div id="feedbackText"></div>
+        <button class="btn-start" id="nextStageBtn" style="display: none; background-color: #3b82f6;">進入下一關 ➔</button>
+    </div>
+
 </div>
-</body>
-</html>
+
+<!-- ⚙️ 核心超安全高相容計分運作腳本 -->
+<script>
+    // 變數安全隔離宣告，絕不重複宣告
+    var s1Score = 0;
+    var s2Score = 0;
+    var s3Score = 0;
+    
+    var currentStage = 1;
+    var currentCountdownValue = 100;
+    var gameTimerInterval = null;
+
+    // 啟動第一關並開跑計時
+    function startStage1() {
+        document.getElementById("startScreen").style.display = "none";
+        document.getElementById("stage1").style.display = "block";
+        document.getElementById("timerDisplayZone").style.display = "block";
+        currentStage = 1;
+        resetAndStartCountdown();
+    }
+
+    // 每一關各自獨立、精準的每秒扣1分計時器
+    function resetAndStartCountdown() {
+        currentCountdownValue = 100;
+        document.getElementById("liveScoreNum").innerText = currentCountdownValue;
+        
+        if (gameTimerInterval !== null) {
+            clearInterval(gameTimerInterval);
+        }
+        
+        gameTimerInterval = setInterval(function() {
+            if (currentCountdownValue > 0) {
+                currentCountdownValue = currentCountdownValue - 1;
+                document.getElementById("liveScoreNum").innerText = currentCountdownValue;
+            } else {
+                clearInterval(gameTimerInterval);
+            }
+        }, 1000);
+    }
+
+    // 【第一關功能】
+    function triggerS1Wrong() {
+        currentCountdownValue = currentCountdownValue - 10; // 答錯額外重罰扣10分
+        if (currentCountdownValue < 0) currentCountdownValue = 0;
+        document.getElementById("liveScoreNum").innerText = currentCountdownValue;
+        alert("❌ 破譯錯誤！暗號規律不符，時間分值額外折損 10 分！");
+    }
+
+    function submitS1Correct() {
+        clearInterval(gameTimerInterval); // 答對那一瞬間，立刻百分之百凍結計時器！
+        s1Score = currentCountdownValue;  // 實時捕捉凍結當下的精確數字
+        
+        var area = document.getElementById("feedbackArea");
+        var txt = document.getElementById("feedbackText");
+        var btn = document.getElementById("nextStageBtn");
+        
+        document.getElementById("stage1").style.display = "none";
+        document.getElementById("timerDisplayZone").style.display = "none";
+        
+        area.style.display = "block";
+        area.className = "result-box res-success";
+        txt.innerHTML = "<h3>🎉 第一關破譯大成功！</h3><p style='font-size:18px;'>🎯 你在本關搶時間斬獲的實時戰績為：<span style='color:#facc15; font-size:24px;'>" + s1Score + "</span> 分！</p>";
+        
+        btn.style.display = "block";
+        btn.onclick = function() {
+            area.style.display = "none";
+            btn.style.display = "none";
+            startStage2();
+        };
+    }
+
+    // 【第二關功能】
+    function startStage2() {
+        document.getElementById("stage2").style.display = "block";
+        document.getElementById("timerDisplayZone").style.display = "block";
+        currentStage = 2;
+        resetAndStartCountdown(); // 第二關全新獨立從 100 倒數
+    }
+
+    function triggerS2Wrong() {
+        currentCountdownValue = currentCountdownValue - 10;
+        if (currentCountdownValue < 0) currentCountdownValue = 0;
+        document.getElementById("liveScoreNum").innerText = currentCountdownValue;
+        alert("❌ 反應錯誤！你掉進了魔王的語意陷阱，分值折損 10 分！");
+    }
+
+    function submitS2Correct() {
+        clearInterval(gameTimerInterval); // 立刻凍結第二關
+        s2Score = currentCountdownValue;  // 捕捉第二關精確分數
+        
+        var area = document.getElementById("feedbackArea");
+        var txt = document.getElementById("feedbackText");
+        var btn = document.getElementById("nextStageBtn");
+        
+        document.getElementById("stage2").style.display = "none";
+        document.getElementById("timerDisplayZone").style.display = "none";
+        
+        area.style.display = "block";
+        area.className = "result-box res-success";
+        txt.innerHTML = "<h3>🎉 第二關指令成功繞過！</h3><p style='font-size:18px;'>🎯 你在第二關搶時間斬獲的實時戰績為：<span style='color:#facc15; font-size:24px;'>" + s2Score + "</span> 分！</p>";
+        
+        btn.style.display = "block";
