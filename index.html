@@ -7,7 +7,8 @@
     <style>
         body { font-family: 'Microsoft JhengHei', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; box-sizing: border-box; }
-        h1 { color: #333; margin-bottom: 20px; }
+        h1 { color: #333; margin-bottom: 5px; }
+        .rule-note { font-size: 13px; color: #777; margin-bottom: 25px; line-height: 1.4; }
         .hidden { display: none !important; }
         input, button { font-size: 16px; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
         button { background-color: #2196F3; color: white; border: none; cursor: pointer; font-weight: bold; }
@@ -30,12 +31,13 @@
     <!-- 畫面 1：登入 -->
     <div id="loginScreen">
         <h1>🧠 每日 1A2B 腦力挑戰</h1>
+        <div class="rule-note">💡 遊戲規則：數字包含 <b>0 - 9</b>，數字不重複。<br>第一位數也可以是 0（例如：0123）。</div>
         <p>請輸入玩家名稱以紀錄歷史積分：</p>
         <input type="text" id="usernameInput" placeholder="例如：幸運玩家">
         <button onclick="handleLogin()">進入遊戲</button>
     </div>
 
-    <!-- 畫面 2：主遊戲與排行榜一體化 -->
+    <!-- 畫面 2：主遊戲與排行榜 -->
     <div id="gameScreen" class="hidden">
         <div class="info-bar">
             <span id="playerInfo">👤 玩家: - (0分)</span>
@@ -44,6 +46,7 @@
 
         <!-- 遊戲主體 -->
         <div id="playArea">
+            <div class="rule-note">💡 提示：數字包含 <b>0 - 9</b>，首位可為 0。第一次猜對得 100 分，之後每多猜一次扣 5 分。</div>
             <div id="scoreHint">💡 目前本次答對可得：100 分</div>
             <div class="game-input-group">
                 <input type="text" id="guessInput" maxlength="4" placeholder="輸入 4 位不重複數字" onkeyup="if(event.key==='Enter')handleGuess()">
@@ -59,7 +62,7 @@
             </div>
         </div>
 
-        <!-- 排行榜區塊 (預設隱藏) -->
+        <!-- 排行榜區塊 -->
         <div id="leaderboardArea" class="hidden">
             <h3>🏆 歷史總積分排行</h3>
             <div class="rank-list" id="rankList"></div>
@@ -74,10 +77,17 @@
     let attempts = 0;
     const maxScore = 100;
 
-    // 讀取/儲存排行資料（利用瀏覽器 LocalStorage 代替後端資料庫）
+    // 讀取排行資料（確保數值正確轉為數字）
     function getLeaderboardData() {
-        return JSON.parse(localStorage.getItem('game_leaderboard_scores')) || {};
+        let rawData = JSON.parse(localStorage.getItem('game_leaderboard_scores')) || {};
+        let cleanData = {};
+        // 強制將所有讀出來的分數轉換為數字數字型態
+        Object.keys(rawData).forEach(key => {
+            cleanData[key] = Number(rawData[key]) || 0;
+        });
+        return cleanData;
     }
+    
     function saveLeaderboardData(data) {
         localStorage.setItem('game_leaderboard_scores', JSON.stringify(data));
     }
@@ -94,7 +104,9 @@
         
         currentUsername = name;
         let data = getLeaderboardData();
-        if (!data[currentUsername]) data[currentUsername] = 0;
+        if (data[currentUsername] === undefined) {
+            data[currentUsername] = 0;
+        }
         saveLeaderboardData(data);
 
         document.getElementById('loginScreen').classList.add('hidden');
@@ -113,7 +125,8 @@
 
     function updateInfoBar() {
         let data = getLeaderboardData();
-        document.getElementById('playerInfo').innerText = `👤 玩家: ${currentUsername} (${data[currentUsername] || 0}分)`;
+        let userScore = data[currentUsername] !== undefined ? data[currentUsername] : 0;
+        document.getElementById('playerInfo').innerText = `👤 玩家: ${currentUsername} (${userScore}分)`;
     }
 
     function handleGuess() {
@@ -122,7 +135,7 @@
 
         // 防呆驗證
         if (guess.length !== 4 || isNaN(guess) || new Set(guess).size !== 4) {
-            alert("請輸入 4 個「不重複」的數字！");
+            alert("請輸入 4 個「0-9 不重複」的數字！");
             return;
         }
 
@@ -141,7 +154,11 @@
         if (a === 4) {
             let finalScore = Math.max(0, maxScore - (attempts - 1) * 5);
             let data = getLeaderboardData();
-            data[currentUsername] = (data[currentUsername] || 0) + finalScore;
+            
+            // 核心修正：確保兩者都是數字，並進行正確的「數值累加」
+            let currentScore = Number(data[currentUsername]) || 0;
+            data[currentUsername] = currentScore + Number(finalScore);
+            
             saveLeaderboardData(data);
 
             alert(`🎉 恭喜答對！答案就是 ${secretNumber}。\n本次猜了 ${attempts} 次，獲得 ${finalScore} 分！`);
@@ -157,19 +174,17 @@
         let lbArea = document.getElementById('leaderboardArea');
         
         if (lbArea.classList.contains('hidden')) {
-            // 顯示排行榜
             playArea.classList.add('hidden');
             lbArea.classList.remove('hidden');
             
             let data = getLeaderboardData();
-            let sorted = Object.entries(data).sort((x, y) => y[1] - x[1]);
+            let sorted = Object.entries(data).sort((x, y) => y[1] - x[1]); // 依分數由高到低排序
             let listHtml = "";
             sorted.forEach(([name, score], idx) => {
                 listHtml += `<div class="rank-item"><span>No.${idx+1} ${name}</span><span>${score} 分</span></div>`;
             });
             document.getElementById('rankList').innerHTML = listHtml || "<p>暫無排行資料</p>";
         } else {
-            // 回到遊戲
             lbArea.classList.add('hidden');
             playArea.classList.remove('hidden');
         }
