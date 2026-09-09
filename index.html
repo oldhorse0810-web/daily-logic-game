@@ -14,9 +14,9 @@
         .info { display: flex; justify-content: space-between; background: #eee; padding: 8px; border-radius: 6px; font-size: 14px; margin-bottom: 10px; }
         .rank-item { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 15px; }
         .rank-name { font-weight: bold; }
-        .rank-games { color: #666; font-size: 12px; margin-left: 5px; }
+        .rank-games { color: #666; font-size: 12px; margin-left: 5px; font-weight: normal; }
         .rank-score { color: #28a745; font-weight: bold; }
-        .status-tag { font-size: 11px; color: #999; }
+        .date-tag { font-size: 12px; color: #666; background: #e2e3e5; padding: 3px 8px; border-radius: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -34,9 +34,12 @@
     <div id="div2" class="hidden">
         <div class="info">
             <span id="pinfo">👤 玩家: -</span>
-            <span style="color:#007bff; cursor:pointer; font-weight:bold;" onclick="gorank()">🏆 即時排行榜 <span id="syncstatus" class="status-tag"></span></span>
+            <span style="color:#007bff; cursor:pointer; font-weight:bold;" onclick="gorank()">🏆 即時排行榜</span>
         </div>
-        <p style="font-size:12px; color:#777;">遊戲規則：數字包含 0-9，數字不重複，首位可為 0。</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size:12px; color:#777; text-align: left;">規則：數字包含 0-9，數字不重複。</span>
+            <span id="datetag" class="date-tag">今日謎題</span>
+        </div>
         <p id="pnote" style="color:#ff5722; font-weight:bold;">目前本次答對可得：100 分</p>
         
         <div style="display:flex; gap:8px;">
@@ -84,37 +87,58 @@
     let user = "";
     let ans = "";
     let count = 0;
-    
-    // 個人當前雲端成績暫存
     let myData = { score: 0, games: 0 };
-    // 全體排行榜暫存
-    let allPlayersData = {};
 
-    // 登入時只抓取「自己」的歷史成績，絕不覆蓋他人
+    // 取得今天日期的字串 (格式例如: 2026-09-10)
+    function getTodayString() {
+        let d = new Date();
+        let yyyy = d.getFullYear();
+        let mm = String(d.getMonth() + 1).padStart(2, '0');
+        let dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // 💡 基於日期生成固定的不重複四位數謎題（讓所有參賽者今天的答案都一模一樣）
+    function generateDailyNumber() {
+        let dateStr = getTodayString();
+        // 利用日期字串做簡單的偽隨機種子
+        let hash = 0;
+        for (let i = 0; i < dateStr.length; i++) {
+            hash = dateStr.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        let digits = ['0','1','2','3','4','5','6','7','8','9'];
+        // 基於雜湊值進行確定性洗牌
+        for (let i = digits.length - 1; i > 0; i--) {
+            let j = Math.abs((hash + i) % (i + 1));
+            let temp = digits[i];
+            digits[i] = digits[j];
+            digits[j] = temp;
+        }
+        return digits.slice(0, 4).join('');
+    }
+
     function loadMyScore(callback) {
         if (!db) { if (callback) callback(); return; }
-        
-        // 讀取該玩家獨立的節點
         db.ref('players/' + user).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                myData = snapshot.val() || { score: 0, games: 0 };
+            let val = snapshot.val();
+            if (val !== null && typeof val === 'object') {
+                myData = {
+                    score: Number(val.score) || 0,
+                    games: Number(val.games) || 0
+                };
             } else {
                 myData = { score: 0, games: 0 };
             }
             if (callback) callback();
         }).catch((err) => {
-            console.error("個人成績讀取失敗:", err);
+            myData = { score: 0, games: 0 };
             if (callback) callback();
         });
     }
 
-    // 只將「自己」最新累積的成績上傳雲端
     function saveMyScore(callback) {
         if (!db) { if (callback) callback(); return; }
         db.ref('players/' + user).set(myData).then(() => {
-            if (callback) callback();
-        }).catch((err) => {
-            console.error("個人成績同步失敗:", err);
             if (callback) callback();
         });
     }
@@ -122,9 +146,9 @@
     function gologin() {
         let n = document.getElementById("realname").value.trim();
         if (!n) { alert("請輸入名字！"); return; }
-        user = n;
-
-        // 登入時抓取歷史分數，確保刷新後舊成績還在
+        // 移除非法字元防止路徑出錯
+        user = n.replace(/[\.\#\$\[\]]/g, ""); 
+        
         loadMyScore(function() {
             document.getElementById("div1").classList.add("hidden");
             document.getElementById("div2").classList.remove("hidden");
@@ -133,14 +157,13 @@
     }
 
     function start() {
-        let d = ['0','1','2','3','4','5','6','7','8','9'];
-        d.sort(() => Math.random() - 0.5);
-        ans = d.slice(0, 4).join('');
+        ans = generateDailyNumber(); // 套用全體每日同步謎題
         count = 0;
         document.getElementById("htable").innerHTML = "";
         document.getElementById("inputnum").value = "";
+        document.getElementById("datetag").innerText = getTodayString();
         document.getElementById("pnote").innerText = "💡 目前本次答對可得：100 分";
-        document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score || 0}分 / 答對 ${myData.games || 0} 次)`;
+        document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score}分 / 答對 ${myData.games} 次)`;
     }
 
     function goguess() {
@@ -168,14 +191,12 @@
         if (a === 4) {
             let s = Math.max(0, 100 - (count - 1) * 5);
             
-            // 答對時先重新抓取一次個人最新狀態再進行數值累加
             loadMyScore(function() {
                 myData.score = (Number(myData.score) || 0) + s;
                 myData.games = (Number(myData.games) || 0) + 1;
                 
-                // 儲存至雲端自己的小抽屜
                 saveMyScore(function() {
-                    alert(`🎉 答對了！答案是 ${ans}\n獲得 ${s} 分！`);
+                    alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！`);
                     start();
                 });
             });
@@ -189,39 +210,38 @@
         if (e.key === "Enter") goguess();
     });
 
-    // 點擊排行榜時，一次性抓取雲端「所有玩家」的資料並排序
     function gorank() {
         document.getElementById("div2").classList.add("hidden");
         document.getElementById("div3").classList.remove("hidden");
         document.getElementById("rlist").innerHTML = "載入最新排名中...";
         
-        if (!db) { document.getElementById("rlist").innerHTML = "<p>暫無排行</p>"; return; }
+        if (!db) { document.getElementById("rlist").innerHTML = "<p>暫無排行資料</p>"; return; }
 
         db.ref('players').once('value').then((snapshot) => {
-            allPlayersData = snapshot.val() || {};
+            let allData = snapshot.val();
             
-            // 將所有玩家資料轉成陣列並按照 score 由高到低精準排序
-            let sorted = Object.entries(allPlayersData).sort((x, y) => ((y[1].score || 0) - (x[1].score || 0)));
+            // 💡 核心防錯：如果資料庫完全為空 (null)，給予乾淨的預設值物件，避免轉陣列出錯
+            if (allData === null || typeof allData !== 'object') {
+                allData = {};
+            }
+
+            let sorted = Object.entries(allData).sort((x, y) => {
+                let scoreX = x[1] && typeof x[1] === 'object' ? (Number(x[1].score) || 0) : 0;
+                let scoreY = y[1] && typeof y[1] === 'object' ? (Number(y[1].score) || 0) : 0;
+                return scoreY - scoreX;
+            });
             
             let html = "";
             sorted.forEach(([name, info], idx) => {
+                if (!info || typeof info !== 'object') return;
+                let s = Number(info.score) || 0;
+                let g = Number(info.games) || 0;
                 html += `
                     <div class="rank-item">
-                        <span><b>No.${idx+1}</b> <span class="rank-name">${name}</span> <span class="rank-games">(${info.games || 0}次)</span></span>
-                        <span class="rank-score">${info.score || 0} 分</span>
+                        <span><b>No.${idx+1}</b> <span class="rank-name">${name}</span> <span class="rank-games">(${g}次)</span></span>
+                        <span class="rank-score">${s} 分</span>
                     </div>`;
             });
-            document.getElementById("rlist").innerHTML = html || "<p>暫無排行</p>";
+            document.getElementById("rlist").innerHTML = html || "<p>暫無排行資料</p>";
         }).catch((err) => {
-            console.error("排行榜載入失敗:", err);
-            document.getElementById("rlist").innerHTML = "<p>排行榜載入失敗</p>";
-        });
-    }
-
-    function goback() {
-        document.getElementById("div3").classList.add("hidden");
-        document.getElementById("div2").classList.remove("hidden");
-    }
-</script>
-</body>
-</html>
+            console.error(err);
