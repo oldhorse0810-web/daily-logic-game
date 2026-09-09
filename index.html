@@ -63,14 +63,15 @@
     </div>
 </div>
 
+<!-- 修正後的 Firebase SDK 引入 -->
 <script src="https://gstatic.com"></script>
 <script src="https://gstatic.com"></script>
 
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyCsNuB6PJLrRI0hk-SPmHPv1pQ_SpMtdRI",
-        authDomain: "://firebaseapp.com",
-        databaseURL: "https://firebaseio.com",
+        authDomain: "my-1a2b-game.firebaseapp.com",
+        databaseURL: "https://my-1a2b-game-default-rtdb.firebaseio.com", // 請確認此處與您Firebase實際的DB網址相符
         projectId: "my-1a2b-game",
         storageBucket: "my-1a2b-game.firebasestorage.app",
         messagingSenderId: "912928813860",
@@ -207,32 +208,38 @@
         db.ref('players').once('value').then((snapshot) => {
             let allData = snapshot.val();
             if (!allData) {
-                document.getElementById("rlist").innerHTML = "<p>暫無排行資料</p>";
+                document.getElementById("rlist").innerHTML = "目前尚無排名資料。";
                 return;
             }
             
-            // 💡 徹底修正：使用 x[1] 抓取二維陣列的值物件進行分數排序
-            let sorted = Object.entries(allData).sort((x, y) => {
-                let scoreX = (x && x[1]) ? (Number(x[1].score) || 0) : 0;
-                let scoreY = (y && y[1]) ? (Number(y[1].score) || 0) : 0;
-                return scoreY - scoreX;
-            });
+            // 將物件轉為陣列以進行排序
+            let arr = [];
+            for (let name in allData) {
+                arr.push({
+                    name: name,
+                    score: allData[name].score || 0,
+                    games: allData[name].games || 0
+                });
+            }
+            
+            // 依據積分（由大到小）排序
+            arr.sort((x, y) => y.score - x.score);
             
             let html = "";
-            sorted.forEach(([name, info], idx) => {
-                if (!info) return;
-                let s = Number(info.score) || 0;
-                let g = Number(info.games) || 0;
+            arr.forEach((item, index) => {
                 html += `
-                    <div class="rank-item">
-                        <span><b>No.${idx+1}</b> <span class="rank-name">${name}</span> <span class="rank-games">(${g}次)</span></span>
-                        <span class="rank-score">${s} 分</span>
-                    </div>`;
+                <div class="rank-item">
+                    <span>
+                        <span>${index + 1}. </span>
+                        <span class="rank-name">${item.name}</span>
+                        <span class="rank-games">(答對 ${item.games} 次)</span>
+                    </span>
+                    <span class="rank-score">${item.score} 分</span>
+                </div>`;
             });
-            document.getElementById("rlist").innerHTML = html || "<p>暫無排行資料</p>";
+            document.getElementById("rlist").innerHTML = html;
         }).catch((err) => {
-            console.error(err);
-            document.getElementById("rlist").innerHTML = "<p>暫無排行資料</p>";
+            document.getElementById("rlist").innerHTML = "無法載入排行資料，請檢查資料庫權限設定。";
         });
     }
 
@@ -241,5 +248,6 @@
         document.getElementById("div2").classList.remove("hidden");
     }
 </script>
+
 </body>
 </html>
