@@ -211,10 +211,10 @@
                 return;
             }
             
-            // 修正取值陣列結構：x[1] 代表該玩家的雲端資料物件
+            // 💡 修正後正確的物件取值結構
             let sorted = Object.entries(allData).sort((x, y) => {
-                let scoreX = x && x[1] ? (Number(x[1].score) || 0) : 0;
-                let scoreY = y && y[1] ? (Number(y[1].score) || 0) : 0;
+                let scoreX = (x && x[1]) ? (Number(x[1].score) || 0) : 0;
+                let scoreY = (y && y[1]) ? (Number(y[1].score) || 0) : 0;
                 return scoreY - scoreX;
             });
             
