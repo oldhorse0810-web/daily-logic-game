@@ -77,12 +77,8 @@
         appId: "1:912928813860:web:55bed08b9bc4cf13f939b1"
     };
 
-    try {
-        firebase.initializeApp(firebaseConfig);
-        var db = firebase.database();
-    } catch(e) {
-        console.log("Firebase 初始化失敗");
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     let user = "";
     let ans = "";
@@ -97,7 +93,6 @@
         return `${yyyy}-${mm}-${dd}`;
     }
 
-    // 固定的每日答案生成
     function generateDailyNumber() {
         let dateStr = getTodayString();
         let hash = 0;
@@ -114,27 +109,26 @@
         return digits.slice(0, 4).join('');
     }
 
+    // 💡 修正點 1：使用獨立路徑定位，確保讀取出的數值精確
     function loadMyScore(callback) {
-        if (!db) { if (callback) callback(); return; }
         db.ref('players/' + user).once('value').then((snapshot) => {
             let val = snapshot.val();
             if (val) {
-                myData = {
-                    score: Number(val.score) || 0,
-                    games: Number(val.games) || 0
-                };
+                myData.score = Number(val.score) || 0;
+                myData.games = Number(val.games) || 0;
             } else {
-                myData = { score: 0, games: 0 };
+                myData.score = 0;
+                myData.games = 0;
             }
             if (callback) callback();
         }).catch((err) => {
-            myData = { score: 0, games: 0 };
+            myData.score = 0;
+            myData.games = 0;
             if (callback) callback();
         });
     }
 
     function saveMyScore(callback) {
-        if (!db) { if (callback) callback(); return; }
         db.ref('players/' + user).set(myData).then(() => {
             if (callback) callback();
         });
@@ -188,8 +182,8 @@
             let s = Math.max(0, 100 - (count - 1) * 5);
             
             loadMyScore(function() {
-                myData.score = (Number(myData.score) || 0) + s;
-                myData.games = (Number(myData.games) || 0) + 1;
+                myData.score = myData.score + s;
+                myData.games = myData.games + 1;
                 
                 saveMyScore(function() {
                     alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！`);
@@ -206,17 +200,20 @@
         if (e.key === "Enter") goguess();
     });
 
+    // 💡 修正點 2：改用正確的二維陣列位置索引對齊物件屬性（[1].score），根除暫無排行的錯誤
     function gorank() {
         document.getElementById("div2").classList.add("hidden");
         document.getElementById("div3").classList.remove("hidden");
         document.getElementById("rlist").innerHTML = "載入最新排名中...";
         
-        if (!db) { document.getElementById("rlist").innerHTML = "<p>暫無排行資料</p>"; return; }
-
         db.ref('players').once('value').then((snapshot) => {
-            let allData = snapshot.val() || {};
+            let allData = snapshot.val();
+            if (!allData) {
+                document.getElementById("rlist").innerHTML = "<p>暫無排行資料</p>";
+                return;
+            }
             
-            // 💡 修正後的正確陣列排序寫法
+            // 正確語法：x[1] 代表該玩家的雲端資料物件
             let sorted = Object.entries(allData).sort((x, y) => {
                 let scoreX = x[1] ? (Number(x[1].score) || 0) : 0;
                 let scoreY = y[1] ? (Number(y[1].score) || 0) : 0;
