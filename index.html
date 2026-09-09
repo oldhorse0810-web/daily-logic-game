@@ -211,7 +211,7 @@
                 return;
             }
             
-            // 💡 修正處：使用標準的陣列位置索引 [1] 讀取資料物件屬性，完成高低排序
+            // 💡 徹底修正：使用 x[1] 抓取二維陣列的值物件進行分數排序
             let sorted = Object.entries(allData).sort((x, y) => {
                 let scoreX = (x && x[1]) ? (Number(x[1].score) || 0) : 0;
                 let scoreY = (y && y[1]) ? (Number(y[1].score) || 0) : 0;
