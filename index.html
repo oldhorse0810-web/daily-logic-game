@@ -42,22 +42,22 @@
         <div class="name-note">📢 提示：請填名字中的一個字讓對手知道你是誰，會搞混時再多一字。</div>
         
         <input type="text" id="usernameInput" placeholder="例如：豪 / 冠宇">
-        <button onclick="handleLogin()">進入遊戲</button>
+        <button id="realLoginBtn">進入遊戲</button>
     </div>
 
     <!-- 畫面 2：主遊戲與排行榜 -->
     <div id="gameScreen" class="hidden">
         <div class="info-bar">
             <span id="playerInfo">👤 玩家: - (0分 / 0次)</span>
-            <span style="cursor:pointer; color:#2196F3; font-weight:bold;" onclick="toggleLeaderboard()">🏆 排行榜</span>
+            <span style="cursor:pointer; color:#2196F3; font-weight:bold;" id="rankToggleBtn">🏆 排行榜</span>
         </div>
 
         <div id="playArea">
             <div class="rule-note">💡 提示：數字包含 <b>0 - 9</b>，首位可為 0。第一次猜對得 100 分，之後每多猜一次扣 5 分。</div>
             <div id="scoreHint">💡 目前本次答對可得：100 分</div>
             <div class="game-input-group">
-                <input type="text" id="guessInput" maxlength="4" placeholder="輸入 4 位不重複數字" onkeyup="if(event.key==='Enter')handleGuess()">
-                <button onclick="handleGuess()">猜！</button>
+                <input type="text" id="guessInput" maxlength="4" placeholder="輸入 4 位不重複數字">
+                <button id="submitGuessBtn">猜！</button>
             </div>
             
             <h3>📊 答題歷史紀錄</h3>
@@ -78,12 +78,12 @@
                 👥 <b>如何看到別人的分數？</b><br>
                 點選下方「複製我的同步碼」傳給對手，請對手點選「匯入對手同步碼」貼上，兩邊的排行榜就會合併並自動排序。
                 <div class="sync-btn-group">
-                    <button style="background-color: #28a745;" onclick="copySyncCode()">📋 複製我的同步碼</button>
-                    <button style="background-color: #17a2b8;" onclick="importSyncCode()">📥 匯入對手同步碼</button>
+                    <button style="background-color: #28a745;" id="copyCodeBtn">📋 複製我的同步碼</button>
+                    <button style="background-color: #17a2b8;" id="importCodeBtn">📥 匯入對手同步碼</button>
                 </div>
             </div>
             
-            <button style="background-color:#666; margin-top: 15px;" onclick="toggleLeaderboard()">返回遊戲</button>
+            <button style="background-color:#666; margin-top: 15px;" id="backToGameBtn">返回遊戲</button>
         </div>
     </div>
 </div>
@@ -93,7 +93,6 @@
     let secretNumber = "";
     let attempts = 0;
     const maxScore = 100;
-    
     let localLeaderboard = {};
 
     function generateSecretNumber() {
@@ -102,7 +101,8 @@
         return digits.slice(0, 4).join('');
     }
 
-    function handleLogin() {
+    // 100% 獨立拆分：登入邏輯
+    document.getElementById('realLoginBtn').addEventListener('click', function() {
         let name = document.getElementById('usernameInput').value.trim();
         if (!name) { alert('請輸入名字！'); return; }
         
@@ -113,24 +113,20 @@
 
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('gameScreen').classList.remove('hidden');
-        initGame();
-    }
-
-    function initGame() {
+        
+        // 畫面切換完，才安全初始化遊戲
         secretNumber = generateSecretNumber();
         attempts = 0;
         document.getElementById('historyTableBody').innerHTML = "";
         document.getElementById('guessInput').value = "";
         document.getElementById('scoreHint').innerText = "💡 目前本次答對可得：100 分";
-        updateInfoBar();
-    }
-
-    function updateInfoBar() {
-        let user = localLeaderboard[currentUsername] || { score: 0, games: 0 };
+        
+        let user = localLeaderboard[currentUsername];
         document.getElementById('playerInfo').innerText = `👤 玩家: ${currentUsername} (${user.score}分 / 答對 ${user.games} 次)`;
-    }
+    });
 
-    function handleGuess() {
+    // 猜題邏輯
+    function processGuess() {
         let guess = document.getElementById('guessInput').value.trim();
         if (!guess) return;
 
@@ -159,17 +155,30 @@
             localLeaderboard[currentUsername].games = (localLeaderboard[currentUsername].games || 0) + 1; 
             
             alert(`🎉 恭喜答對！答案就是 ${secretNumber}。\n本次猜了 ${attempts} 次，獲得 ${finalScore} 分！`);
-            initGame();
+            
+            // 下一局初始化
+            secretNumber = generateSecretNumber();
+            attempts = 0;
+            document.getElementById('historyTableBody').innerHTML = "";
+            document.getElementById('guessInput').value = "";
+            document.getElementById('scoreHint').innerText = "💡 目前本次答對可得：100 分";
+            
+            let user = localLeaderboard[currentUsername];
+            document.getElementById('playerInfo').innerText = `👤 玩家: ${currentUsername} (${user.score}分 / 答對 ${user.games} 次)`;
         } else {
             let nextScore = Math.max(0, maxScore - attempts * 5);
             document.getElementById('scoreHint').innerText = `💡 目前本次答對可得：${nextScore} 分`;
         }
     }
 
-    function renderList() {
-        // 已修正：依據總積分（score）由高到低進行精準排序
+    document.getElementById('submitGuessBtn').addEventListener('click', processGuess);
+    document.getElementById('guessInput').addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') processGuess();
+    });
+
+    // 排行榜渲染
+    function showRank() {
         let sorted = Object.entries(localLeaderboard).sort((x, y) => y[1].score - x[1].score);
-        
         let listHtml = "";
         let rankIndex = 1;
         sorted.forEach(([name, info]) => {
@@ -186,42 +195,24 @@
         document.getElementById('rankList').innerHTML = listHtml || "<p>暫無排行資料</p>";
     }
 
-    function toggleLeaderboard() {
-        let playArea = document.getElementById('playArea');
-        let lbArea = document.getElementById('leaderboardArea');
-        
-        if (lbArea.classList.contains('hidden')) {
-            playArea.classList.add('hidden');
-            lbArea.classList.remove('hidden');
-            renderList();
-        } else {
-            lbArea.classList.add('hidden');
-            playArea.classList.remove('hidden');
-        }
-    }
+    document.getElementById('rankToggleBtn').addEventListener('click', function() {
+        document.getElementById('playArea').classList.add('hidden');
+        document.getElementById('leaderboardArea').classList.remove('hidden');
+        showRank();
+    });
 
-    function copySyncCode() {
+    document.getElementById('backToGameBtn').addEventListener('click', function() {
+        document.getElementById('leaderboardArea').classList.add('hidden');
+        document.getElementById('playArea').classList.remove('hidden');
+    });
+
+    document.getElementById('copyCodeBtn').addEventListener('click', function() {
         let code = btoa(encodeURIComponent(JSON.stringify(localLeaderboard)));
         navigator.clipboard.writeText(code).then(() => {
-            alert("📋 同步碼已成功複製！請傳給你的對手。");
+            alert("📋 同步碼已複製！快傳給朋友。");
         }).catch(() => {
             alert("請複製此代碼：\n\n" + code);
         });
-    }
+    });
 
-    function importSyncCode() {
-        let code = prompt("請貼上對手傳給你的同步碼：");
-        if (!code) return;
-        try {
-            let decodedData = JSON.parse(decodeURIComponent(atob(code.trim())));
-            Object.keys(decodedData).forEach(name => {
-                if (localLeaderboard[name]) {
-                    localLeaderboard[name].score = Math.max(localLeaderboard[name].score, decodedData[name].score);
-                    localLeaderboard[name].games = Math.max(localLeaderboard[name].games, decodedData[name].games);
-                } else {
-                    localLeaderboard[name] = decodedData[name];
-                }
-            });
-            renderList();
-            updateInfoBar();
-            alert("✨ 雙方排行成績已順利合併並重新排序！");
+    document.getElementById('importCodeBtn').addEventListener('click', function() {
