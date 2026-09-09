@@ -89,7 +89,6 @@
     let count = 0;
     let myData = { score: 0, games: 0 };
 
-    // 取得今天日期的字串 (格式例如: 2026-09-10)
     function getTodayString() {
         let d = new Date();
         let yyyy = d.getFullYear();
@@ -98,16 +97,14 @@
         return `${yyyy}-${mm}-${dd}`;
     }
 
-    // 💡 基於日期生成固定的不重複四位數謎題（讓所有參賽者今天的答案都一模一樣）
+    // 固定的每日答案生成
     function generateDailyNumber() {
         let dateStr = getTodayString();
-        // 利用日期字串做簡單的偽隨機種子
         let hash = 0;
         for (let i = 0; i < dateStr.length; i++) {
             hash = dateStr.charCodeAt(i) + ((hash << 5) - hash);
         }
         let digits = ['0','1','2','3','4','5','6','7','8','9'];
-        // 基於雜湊值進行確定性洗牌
         for (let i = digits.length - 1; i > 0; i--) {
             let j = Math.abs((hash + i) % (i + 1));
             let temp = digits[i];
@@ -121,7 +118,7 @@
         if (!db) { if (callback) callback(); return; }
         db.ref('players/' + user).once('value').then((snapshot) => {
             let val = snapshot.val();
-            if (val !== null && typeof val === 'object') {
+            if (val) {
                 myData = {
                     score: Number(val.score) || 0,
                     games: Number(val.games) || 0
@@ -146,7 +143,6 @@
     function gologin() {
         let n = document.getElementById("realname").value.trim();
         if (!n) { alert("請輸入名字！"); return; }
-        // 移除非法字元防止路徑出錯
         user = n.replace(/[\.\#\$\[\]]/g, ""); 
         
         loadMyScore(function() {
@@ -157,7 +153,7 @@
     }
 
     function start() {
-        ans = generateDailyNumber(); // 套用全體每日同步謎題
+        ans = generateDailyNumber(); 
         count = 0;
         document.getElementById("htable").innerHTML = "";
         document.getElementById("inputnum").value = "";
@@ -218,22 +214,18 @@
         if (!db) { document.getElementById("rlist").innerHTML = "<p>暫無排行資料</p>"; return; }
 
         db.ref('players').once('value').then((snapshot) => {
-            let allData = snapshot.val();
+            let allData = snapshot.val() || {};
             
-            // 💡 核心防錯：如果資料庫完全為空 (null)，給予乾淨的預設值物件，避免轉陣列出錯
-            if (allData === null || typeof allData !== 'object') {
-                allData = {};
-            }
-
+            // 💡 修正後的正確陣列排序寫法
             let sorted = Object.entries(allData).sort((x, y) => {
-                let scoreX = x[1] && typeof x[1] === 'object' ? (Number(x[1].score) || 0) : 0;
-                let scoreY = y[1] && typeof y[1] === 'object' ? (Number(y[1].score) || 0) : 0;
+                let scoreX = x[1] ? (Number(x[1].score) || 0) : 0;
+                let scoreY = y[1] ? (Number(y[1].score) || 0) : 0;
                 return scoreY - scoreX;
             });
             
             let html = "";
             sorted.forEach(([name, info], idx) => {
-                if (!info || typeof info !== 'object') return;
+                if (!info) return;
                 let s = Number(info.score) || 0;
                 let g = Number(info.games) || 0;
                 html += `
@@ -245,3 +237,14 @@
             document.getElementById("rlist").innerHTML = html || "<p>暫無排行資料</p>";
         }).catch((err) => {
             console.error(err);
+            document.getElementById("rlist").innerHTML = "<p>暫無排行資料</p>";
+        });
+    }
+
+    function goback() {
+        document.getElementById("div3").classList.add("hidden");
+        document.getElementById("div2").classList.remove("hidden");
+    }
+</script>
+</body>
+</html>
