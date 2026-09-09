@@ -24,7 +24,7 @@
         .rank-list { text-align: left; padding: 0 10px; max-height: 300px; overflow-y: auto; }
         .rank-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 15px; }
         .rank-name { font-weight: bold; }
-        .rank-count { color: #888; font-size: 12px; margin-left: 5px; }
+        .rank-games { color: #666; font-size: 13px; margin-left: 5px; font-weight: normal; }
         .rank-score { color: #4CAF50; font-weight: bold; }
     </style>
 </head>
@@ -80,21 +80,20 @@
     let attempts = 0;
     const maxScore = 100;
 
-    // 讀取排行資料，結構調整為：{ 玩家名: { score: 總分, count: 總作答次數 } }
+    // 讀取排行資料，結構：{ 玩家名: { score: 總分, games: 累計獲得分數的總次數 } }
     function getLeaderboardData() {
-        let rawData = JSON.parse(localStorage.getItem('game_leaderboard_v2')) || {};
+        let rawData = JSON.parse(localStorage.getItem('game_leaderboard_v4')) || {};
         let cleanData = {};
         Object.keys(rawData).forEach(key => {
             if (typeof rawData[key] === 'object' && rawData[key] !== null) {
                 cleanData[key] = {
                     score: Number(rawData[key].score) || 0,
-                    count: Number(rawData[key].count) || 0
+                    games: Number(rawData[key].games) || 0
                 };
             } else {
-                // 相容舊資料轉移
                 cleanData[key] = {
                     score: Number(rawData[key]) || 0,
-                    count: 0
+                    games: 1
                 };
             }
         });
@@ -102,7 +101,7 @@
     }
     
     function saveLeaderboardData(data) {
-        localStorage.setItem('game_leaderboard_v2', JSON.stringify(data));
+        localStorage.setItem('game_leaderboard_v4', JSON.stringify(data));
     }
 
     function generateSecretNumber() {
@@ -118,7 +117,7 @@
         currentUsername = name;
         let data = getLeaderboardData();
         if (!data[currentUsername]) {
-            data[currentUsername] = { score: 0, count: 0 };
+            data[currentUsername] = { score: 0, games: 0 };
         }
         saveLeaderboardData(data);
 
@@ -139,7 +138,8 @@
     function updateInfoBar() {
         let data = getLeaderboardData();
         let userScore = data[currentUsername] ? data[currentUsername].score : 0;
-        document.getElementById('playerInfo').innerText = `👤 玩家: ${currentUsername} (${userScore}分)`;
+        let userGames = data[currentUsername] ? data[currentUsername].games : 0;
+        document.getElementById('playerInfo').innerText = `👤 玩家: ${currentUsername} (${userScore}分 / 答對 ${userGames} 次)`;
     }
 
     function handleGuess() {
@@ -168,9 +168,9 @@
             let finalScore = Math.max(0, maxScore - (attempts - 1) * 5);
             let data = getLeaderboardData();
             
-            // 累加分數與總作答次數
+            // 累加分數，且「累計獲得分數的次數（題數）」＋1
             data[currentUsername].score = (data[currentUsername].score || 0) + Number(finalScore);
-            data[currentUsername].count = (data[currentUsername].count || 0) + Number(attempts);
+            data[currentUsername].games = (data[currentUsername].games || 0) + 1; 
             
             saveLeaderboardData(data);
 
@@ -178,7 +178,7 @@
             initGame();
         } else {
             let nextScore = Math.max(0, maxScore - attempts * 5);
-            document.getElementById('scoreHint').innerText = `💡 目前本次答對可得：${nextScore} 分`;
+            document.getElementById('scoreHint').innerText = `💡 目前本次答對可得：{nextScore} 分`;
         }
     }
 
@@ -192,7 +192,7 @@
             
             let data = getLeaderboardData();
             
-            // 將物件轉為陣列並嚴格按照「總積分由高到低」排序
+            // 按照「總積分由高到低」精準排序
             let sorted = Object.entries(data).sort((x, y) => y[1].score - x[1].score);
             
             let listHtml = "";
@@ -201,7 +201,7 @@
                     <div class="rank-item">
                         <span>
                             <b>No.${idx+1}</b> <span class="rank-name">${name}</span>
-                            <span class="rank-count">(作答 ${info.count} 次)</span>
+                            <span class="rank-games">(${info.games}次)</span>
                         </span>
                         <span class="rank-score">${info.score} 分</span>
                     </div>`;
