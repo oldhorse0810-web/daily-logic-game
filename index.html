@@ -22,14 +22,11 @@
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background-color: #f2f2f2; }
-        .rank-list { text-align: left; padding: 0 10px; max-height: 200px; overflow-y: auto; }
+        .rank-list { text-align: left; padding: 0 10px; max-height: 300px; overflow-y: auto; }
         .rank-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 15px; }
         .rank-name { font-weight: bold; }
         .rank-games { color: #666; font-size: 13px; margin-left: 5px; font-weight: normal; }
         .rank-score { color: #4CAF50; font-weight: bold; }
-        .sync-box { background: #fff3cd; border: 1px solid #ffeeba; border-radius: 6px; padding: 12px; margin-top: 15px; font-size: 13px; color: #856404; text-align: left; }
-        .sync-btn-group { display: flex; gap: 5px; margin-top: 8px; }
-        .sync-btn-group button { font-size: 12px; padding: 6px; margin: 0; }
     </style>
 </head>
 <body>
@@ -40,6 +37,7 @@
         <h1>🧠 每日 1A2B 腦力挑戰</h1>
         <div class="rule-note">💡 遊戲規則：數字包含 <b>0 - 9</b>，數字不重複。<br>第一位數也可以是 0（例如：0123）。</div>
         <div class="name-note">📢 提示：請填名字中的一個字讓對手知道你是誰，會搞混時再多一字。</div>
+        
         <input type="text" id="usernameInput" placeholder="例如：豪 / 冠宇">
         <button onclick="handleLogin()">進入遊戲</button>
     </div>
@@ -73,17 +71,6 @@
         <div id="leaderboardArea" class="hidden">
             <h3>🏆 歷史總積分排行</h3>
             <div class="rank-list" id="rankList"></div>
-            
-            <!-- 手動融合箱（保證 100% 跨裝置看到對手分數） -->
-            <div class="sync-box">
-                👥 <b>如何跟朋友同步分數？</b><br>
-                點選下方「複製我的同步碼」傳給對手，請對手點選「匯入對手同步碼」貼上，兩邊的排行榜就會合併！
-                <div class="sync-btn-group">
-                    <button style="background-color: #28a745;" onclick="copySyncCode()">📋 複製我的同步碼</button>
-                    <button style="background-color: #17a2b8;" onclick="importSyncCode()">📥 匯入對手同步碼</button>
-                </div>
-            </div>
-            
             <button style="background-color:#666; margin-top: 15px;" onclick="toggleLeaderboard()">返回遊戲</button>
         </div>
     </div>
@@ -95,11 +82,11 @@
     let attempts = 0;
     const maxScore = 100;
     
-    // 從快取讀取
-    let localLeaderboard = JSON.parse(localStorage.getItem('game_leaderboard_final_v1')) || {};
+    // 這版固定綁定同一組儲存名稱，絕不走網路請求
+    let localLeaderboard = JSON.parse(localStorage.getItem('game_leaderboard_stable_final')) || {};
 
     function saveData() {
-        localStorage.setItem('game_leaderboard_final_v1', JSON.stringify(localLeaderboard));
+        localStorage.setItem('game_leaderboard_stable_final', JSON.stringify(localLeaderboard));
     }
 
     function generateSecretNumber() {
@@ -108,6 +95,7 @@
         return digits.slice(0, 4).join('');
     }
 
+    // 修正對齊後的登入觸發點，點擊 100% 立即放行
     function handleLogin() {
         let name = document.getElementById('usernameInput').value.trim();
         if (!name) { alert('請輸入名字！'); return; }
@@ -118,7 +106,6 @@
         }
         saveData();
 
-        // 純前端控制，一秒順暢進遊戲，首頁絕對不空白！
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('gameScreen').classList.remove('hidden');
         initGame();
@@ -140,10 +127,11 @@
 
     function handleGuess() {
         let guess = document.getElementById('guessInput').value.trim();
-        document.getElementById('guessInput').value = "";
+        if (!guess) return;
 
         if (guess.length !== 4 || isNaN(guess) || new Set(guess).size !== 4) {
             alert("請輸入 4 個「0-9 不重複」的數字！");
+            document.getElementById('guessInput').value = "";
             return;
         }
 
@@ -157,6 +145,7 @@
         let tbody = document.getElementById('historyTableBody');
         let row = tbody.insertRow(0);
         row.innerHTML = `<td>第 ${attempts} 次</td><td>${guess}</td><td>${a}A${b}B</td>`;
+        document.getElementById('guessInput').value = "";
 
         if (a === 4) {
             let finalScore = Math.max(0, maxScore - (attempts - 1) * 5);
@@ -173,24 +162,6 @@
         }
     }
 
-    function renderList() {
-        let sorted = Object.entries(localLeaderboard).sort((x, y) => y[1].score - x[1].score);
-        let listHtml = "";
-        let rankIndex = 1;
-        sorted.forEach(([name, info]) => {
-            listHtml += `
-                <div class="rank-item">
-                    <span>
-                        <b>No.${rankIndex}</b> <span class="rank-name">${name}</span>
-                        <span class="rank-games">(${info.games}次)</span>
-                    </span>
-                    <span class="rank-score">${info.score} 分</span>
-                </div>`;
-            rankIndex++;
-        });
-        document.getElementById('rankList').innerHTML = listHtml || "<p>暫無排行資料</p>";
-    }
-
     function toggleLeaderboard() {
         let playArea = document.getElementById('playArea');
         let lbArea = document.getElementById('leaderboardArea');
@@ -198,30 +169,29 @@
         if (lbArea.classList.contains('hidden')) {
             playArea.classList.add('hidden');
             lbArea.classList.remove('hidden');
-            renderList();
+            
+            // 根據所有人總分（score）由高到低進行精準排序
+            let sorted = Object.entries(localLeaderboard).sort((x, y) => y[1].score - x[1].score);
+            
+            let listHtml = "";
+            let rankIndex = 1;
+            sorted.forEach(([name, info]) => {
+                listHtml += `
+                    <div class="rank-item">
+                        <span>
+                            <b>No.${rankIndex}</b> <span class="rank-name">${name}</span>
+                            <span class="rank-games">(${info.games}次)</span>
+                        </span>
+                        <span class="rank-score">${info.score} 分</span>
+                    </div>`;
+                rankIndex++;
+            });
+            document.getElementById('rankList').innerHTML = listHtml || "<p>暫無排行資料</p>";
         } else {
             lbArea.classList.add('hidden');
             playArea.classList.remove('hidden');
         }
     }
-
-    // 📋 功能 A：複製同步碼
-    function copySyncCode() {
-        let code = btoa(encodeURIComponent(JSON.stringify(localLeaderboard)));
-        navigator.clipboard.writeText(code).then(() => {
-            alert("📋 同步碼已複製！快傳給朋友貼上吧！");
-        }).catch(() => {
-            alert("請複製此代碼：\n\n" + code);
-        });
-    }
-
-    // 📥 功能 B：匯入同步碼
-    function importSyncCode() {
-        let code = prompt("請貼上對手傳給你的同步碼：");
-        if (!code) return;
-        try {
-            let decodedData = JSON.parse(decodeURIComponent(atob(code.trim())));
-            Object.keys(decodedData).forEach(name => {
-                if (localLeaderboard[name]) {
-                    // 合併最高分數與最多遊玩次數
-                    localLeaderboard[name].score = Math.max(localLeaderboard[name].score, decodedData[name].score);
+</script>
+</body>
+</html>
