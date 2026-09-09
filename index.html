@@ -8,7 +8,8 @@
         body { font-family: 'Microsoft JhengHei', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; box-sizing: border-box; }
         h1 { color: #333; margin-bottom: 5px; }
-        .rule-note { font-size: 13px; color: #777; margin-bottom: 25px; line-height: 1.4; }
+        .rule-note { font-size: 13px; color: #777; margin-bottom: 20px; line-height: 1.4; }
+        .name-note { font-size: 13px; color: #E91E63; font-weight: bold; margin-bottom: 10px; line-height: 1.4; }
         .hidden { display: none !important; }
         input, button { font-size: 16px; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
         button { background-color: #2196F3; color: white; border: none; cursor: pointer; font-weight: bold; }
@@ -35,8 +36,11 @@
     <div id="loginScreen">
         <h1>🧠 每日 1A2B 腦力挑戰</h1>
         <div class="rule-note">💡 遊戲規則：數字包含 <b>0 - 9</b>，數字不重複。<br>第一位數也可以是 0（例如：0123）。</div>
-        <p>請輸入玩家名稱以紀錄歷史積分：</p>
-        <input type="text" id="usernameInput" placeholder="例如：幸運玩家">
+        
+        <!-- 新增的玩家姓名輸入備註 -->
+        <div class="name-note">📢 提示：請填名字中的一個字讓對手知道你是誰，會搞混時再多一字。</div>
+        
+        <input type="text" id="usernameInput" placeholder="例如：豪 / 冠宇">
         <button onclick="handleLogin()">進入遊戲</button>
     </div>
 
@@ -80,7 +84,6 @@
     let attempts = 0;
     const maxScore = 100;
 
-    // 讀取排行資料，結構：{ 玩家名: { score: 總分, games: 累計獲得分數的總次數 } }
     function getLeaderboardData() {
         let rawData = JSON.parse(localStorage.getItem('game_leaderboard_v4')) || {};
         let cleanData = {};
@@ -112,7 +115,7 @@
 
     function handleLogin() {
         let name = document.getElementById('usernameInput').value.trim();
-        if (!name) { alert('請輸入玩家名稱！'); return; }
+        if (!name) { alert('請輸入名字！'); return; }
         
         currentUsername = name;
         let data = getLeaderboardData();
@@ -146,7 +149,6 @@
         let guess = document.getElementById('guessInput').value.trim();
         document.getElementById('guessInput').value = "";
 
-        // 防呆驗證
         if (guess.length !== 4 || isNaN(guess) || new Set(guess).size !== 4) {
             alert("請輸入 4 個「0-9 不重複」的數字！");
             return;
@@ -159,7 +161,6 @@
             else if (secretNumber.includes(guess[i])) b++;
         }
 
-        // 插入表格最前排
         let tbody = document.getElementById('historyTableBody');
         let row = tbody.insertRow(0);
         row.innerHTML = `<td>第 ${attempts} 次</td><td>${guess}</td><td>${a}A${b}B</td>`;
@@ -168,7 +169,6 @@
             let finalScore = Math.max(0, maxScore - (attempts - 1) * 5);
             let data = getLeaderboardData();
             
-            // 累加分數，且「累計獲得分數的次數（題數）」＋1
             data[currentUsername].score = (data[currentUsername].score || 0) + Number(finalScore);
             data[currentUsername].games = (data[currentUsername].games || 0) + 1; 
             
@@ -178,7 +178,7 @@
             initGame();
         } else {
             let nextScore = Math.max(0, maxScore - attempts * 5);
-            document.getElementById('scoreHint').innerText = `💡 目前本次答對可得：{nextScore} 分`;
+            document.getElementById('scoreHint').innerText = `💡 目前本次答對可得：${nextScore} 分`;
         }
     }
 
@@ -191,9 +191,7 @@
             lbArea.classList.remove('hidden');
             
             let data = getLeaderboardData();
-            
-            // 按照「總積分由高到低」精準排序
-            let sorted = Object.entries(data).sort((x, y) => y[1].score - x[1].score);
+            let sorted = Object.entries(data).sort((x, y) => y.score - x.score);
             
             let listHtml = "";
             sorted.forEach(([name, info], idx) => {
