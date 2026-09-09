@@ -63,7 +63,6 @@
     </div>
 </div>
 
-<!-- 引入標準穩定相容庫 -->
 <script src="https://gstatic.com"></script>
 <script src="https://gstatic.com"></script>
 
@@ -212,7 +211,7 @@
                 return;
             }
             
-            // 💡 修正處：使用標準無誤的陣列索引（取 [1] 裡面的 score屬性）完成排序
+            // 💡 修正處：使用標準的陣列位置索引 [1] 讀取資料物件屬性，完成高低排序
             let sorted = Object.entries(allData).sort((x, y) => {
                 let scoreX = (x && x[1]) ? (Number(x[1].score) || 0) : 0;
                 let scoreY = (y && y[1]) ? (Number(y[1].score) || 0) : 0;
