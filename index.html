@@ -27,31 +27,26 @@
         .rank-name { font-weight: bold; }
         .rank-games { color: #666; font-size: 13px; margin-left: 5px; font-weight: normal; }
         .rank-score { color: #4CAF50; font-weight: bold; }
+        .syncing { font-size: 12px; color: #999; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- 畫面 1：登入 -->
     <div id="loginScreen">
         <h1>🧠 每日 1A2B 腦力挑戰</h1>
         <div class="rule-note">💡 遊戲規則：數字包含 <b>0 - 9</b>，數字不重複。<br>第一位數也可以是 0（例如：0123）。</div>
-        
-        <!-- 新增的玩家姓名輸入備註 -->
         <div class="name-note">📢 提示：請填名字中的一個字讓對手知道你是誰，會搞混時再多一字。</div>
-        
         <input type="text" id="usernameInput" placeholder="例如：豪 / 冠宇">
-        <button onclick="handleLogin()">進入遊戲</button>
+        <button id="loginBtn" onclick="handleLogin()">進入遊戲</button>
     </div>
 
-    <!-- 畫面 2：主遊戲與排行榜 -->
     <div id="gameScreen" class="hidden">
         <div class="info-bar">
-            <span id="playerInfo">👤 玩家: - (0分)</span>
-            <span style="cursor:pointer; color:#2196F3; font-weight:bold;" onclick="toggleLeaderboard()">🏆 排行榜</span>
+            <span id="playerInfo">👤 玩家: - (0分 / 0次)</span>
+            <span style="cursor:pointer; color:#2196F3; font-weight:bold;" onclick="toggleLeaderboard()">🏆 排行榜 <span id="syncStatus" class="syncing"></span></span>
         </div>
 
-        <!-- 遊戲主體 -->
         <div id="playArea">
             <div class="rule-note">💡 提示：數字包含 <b>0 - 9</b>，首位可為 0。第一次猜對得 100 分，之後每多猜一次扣 5 分。</div>
             <div id="scoreHint">💡 目前本次答對可得：100 分</div>
@@ -69,42 +64,61 @@
             </div>
         </div>
 
-        <!-- 排行榜區塊 -->
         <div id="leaderboardArea" class="hidden">
-            <h3>🏆 歷史總積分排行</h3>
-            <div class="rank-list" id="rankList"></div>
+            <h3>🏆 跨裝置·全球總積分排行</h3>
+            <div class="rank-list" id="rankList">連線同步中...</div>
             <button style="background-color:#666;" onclick="toggleLeaderboard()">返回遊戲</button>
         </div>
     </div>
 </div>
 
 <script>
+    // ======= 💡 雲端資料庫設定區塊 =======
+    const CONFIG = {
+        API_KEY: '$2a$10$KH/sdzTIL9QEU27HRj7OGOleIKYDYw825ycDo7HTtcQeMTrgnETvq
+', 
+        BIN_ID: '6aa133eaac6210605ab777ad
+'
+    };
+    // =====================================
+
     let currentUsername = "";
     let secretNumber = "";
     let attempts = 0;
     const maxScore = 100;
+    let globalLeaderboard = {};
 
-    function getLeaderboardData() {
-        let rawData = JSON.parse(localStorage.getItem('game_leaderboard_v4')) || {};
-        let cleanData = {};
-        Object.keys(rawData).forEach(key => {
-            if (typeof rawData[key] === 'object' && rawData[key] !== null) {
-                cleanData[key] = {
-                    score: Number(rawData[key].score) || 0,
-                    games: Number(rawData[key].games) || 0
-                };
-            } else {
-                cleanData[key] = {
-                    score: Number(rawData[key]) || 0,
-                    games: 1
-                };
-            }
-        });
-        return cleanData;
+    async function fetchCloudData() {
+        document.getElementById('syncStatus').innerText = "(同步中...)";
+        try {
+            let response = await fetch(`https://jsonbin.io{CONFIG.BIN_ID}/latest`, {
+                method: 'GET',
+                headers: { 'X-Master-Key': CONFIG.API_KEY }
+            });
+            let resData = await response.json();
+            globalLeaderboard = resData.record || {};
+            document.getElementById('syncStatus').innerText = "(已連線)";
+        } catch (error) {
+            console.error("雲端讀取失敗", error);
+            document.getElementById('syncStatus').innerText = "(離線)";
+            globalLeaderboard = JSON.parse(localStorage.getItem('backup_leaderboard')) || {};
+        }
     }
-    
-    function saveLeaderboardData(data) {
-        localStorage.setItem('game_leaderboard_v4', JSON.stringify(data));
+
+    async function saveCloudData(newData) {
+        localStorage.setItem('backup_leaderboard', JSON.stringify(newData));
+        try {
+            await fetch(`https://jsonbin.io{CONFIG.BIN_ID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': CONFIG.API_KEY
+                },
+                body: JSON.stringify(newData)
+            });
+        } catch (error) {
+            console.error("雲端上傳失敗", error);
+        }
     }
 
     function generateSecretNumber() {
@@ -113,16 +127,20 @@
         return digits.slice(0, 4).join('');
     }
 
-    function handleLogin() {
+    async function handleLogin() {
         let name = document.getElementById('usernameInput').value.trim();
         if (!name) { alert('請輸入名字！'); return; }
         
+        document.getElementById('loginBtn').innerText = "雲端連線中...";
+        document.getElementById('loginBtn').disabled = true;
+
         currentUsername = name;
-        let data = getLeaderboardData();
-        if (!data[currentUsername]) {
-            data[currentUsername] = { score: 0, games: 0 };
+        await fetchCloudData();
+
+        if (!globalLeaderboard[currentUsername]) {
+            globalLeaderboard[currentUsername] = { score: 0, games: 0 };
+            await saveCloudData(globalLeaderboard);
         }
-        saveLeaderboardData(data);
 
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('gameScreen').classList.remove('hidden');
@@ -139,13 +157,11 @@
     }
 
     function updateInfoBar() {
-        let data = getLeaderboardData();
-        let userScore = data[currentUsername] ? data[currentUsername].score : 0;
-        let userGames = data[currentUsername] ? data[currentUsername].games : 0;
-        document.getElementById('playerInfo').innerText = `👤 玩家: ${currentUsername} (${userScore}分 / 答對 ${userGames} 次)`;
+        let user = globalLeaderboard[currentUsername] || { score: 0, games: 0 };
+        document.getElementById('playerInfo').innerText = `👤 玩家: ${currentUsername} (${user.score}分 / 答對 ${user.games} 次)`;
     }
 
-    function handleGuess() {
+    async function handleGuess() {
         let guess = document.getElementById('guessInput').value.trim();
         document.getElementById('guessInput').value = "";
 
@@ -167,12 +183,17 @@
 
         if (a === 4) {
             let finalScore = Math.max(0, maxScore - (attempts - 1) * 5);
-            let data = getLeaderboardData();
             
-            data[currentUsername].score = (data[currentUsername].score || 0) + Number(finalScore);
-            data[currentUsername].games = (data[currentUsername].games || 0) + 1; 
+            await fetchCloudData();
             
-            saveLeaderboardData(data);
+            if(!globalLeaderboard[currentUsername]) {
+                globalLeaderboard[currentUsername] = { score: 0, games: 0 };
+            }
+
+            globalLeaderboard[currentUsername].score = (globalLeaderboard[currentUsername].score || 0) + Number(finalScore);
+            globalLeaderboard[currentUsername].games = (globalLeaderboard[currentUsername].games || 0) + 1; 
+            
+            await saveCloudData(globalLeaderboard);
 
             alert(`🎉 恭喜答對！答案就是 ${secretNumber}。\n本次猜了 ${attempts} 次，獲得 ${finalScore} 分！`);
             initGame();
@@ -182,7 +203,7 @@
         }
     }
 
-    function toggleLeaderboard() {
+    async function toggleLeaderboard() {
         let playArea = document.getElementById('playArea');
         let lbArea = document.getElementById('leaderboardArea');
         
@@ -190,26 +211,23 @@
             playArea.classList.add('hidden');
             lbArea.classList.remove('hidden');
             
-            let data = getLeaderboardData();
-            let sorted = Object.entries(data).sort((x, y) => y.score - x.score);
+            await fetchCloudData();
+            
+            let sorted = Object.entries(globalLeaderboard).sort((x, y) => y[1].score - x[1].score);
             
             let listHtml = "";
-            sorted.forEach(([name, info], idx) => {
+            let rankIndex = 1;
+            sorted.forEach(([name, info]) => {
+                // 💡 核心過濾：自動忽略一開始建立用的「測試」資料
+                if (name === "測試") return;
+                
                 listHtml += `
                     <div class="rank-item">
                         <span>
-                            <b>No.${idx+1}</b> <span class="rank-name">${name}</span>
+                            <b>No.${rankIndex}</b> <span class="rank-name">${name}</span>
                             <span class="rank-games">(${info.games}次)</span>
                         </span>
                         <span class="rank-score">${info.score} 分</span>
                     </div>`;
+                rankIndex++;
             });
-            document.getElementById('rankList').innerHTML = listHtml || "<p>暫無排行資料</p>";
-        } else {
-            lbArea.classList.add('hidden');
-            playArea.classList.remove('hidden');
-        }
-    }
-</script>
-</body>
-</html>
