@@ -25,22 +25,23 @@
     <div id="div1">
         <h2>🧠 1A2B 腦力挑戰大賽</h2>
         <p style="font-size:13px; color:#e91e63; font-weight:bold;">📢 提示：請填名字中的一個字，會搞混時再多一字。</p>
-        <input type="text" id="inputname" placeholder="例如：豪 / 冠宇">
-        <button id="loginbtn">進入遊戲</button>
+        <input type="text" id="inputname" placeholder="ignore_me" style="display:none;"> <!-- 防瀏覽器自動填入 -->
+        <input type="text" id="realname" placeholder="例如：豪 / 冠宇">
+        <button onclick="gologin()">進入遊戲</button>
     </div>
 
     <!-- 畫面 2：主遊戲 -->
     <div id="div2" class="hidden">
         <div class="info">
             <span id="pinfo">👤 玩家: -</span>
-            <span style="color:#007bff; cursor:pointer; font-weight:bold;" id="ranklink">🏆 即時排行榜</span>
+            <span style="color:#007bff; cursor:pointer; font-weight:bold;" onclick="gorank()">🏆 即時排行榜</span>
         </div>
         <p style="font-size:12px; color:#777;">遊戲規則：數字包含 0-9，數字不重複，首位可為 0。</p>
         <p id="pnote" style="color:#ff5722; font-weight:bold;">目前本次答對可得：100 分</p>
         
         <div style="display:flex; gap:8px;">
             <input type="text" id="inputnum" maxlength="4" placeholder="輸入 4 位不重複數字" style="flex:2; margin:0;">
-            <button id="guessbtn" style="flex:1; margin:0; background-color:#28a745;">猜！</button>
+            <button onclick="goguess()" style="flex:1; margin:0; background-color:#28a745;">猜！</button>
         </div>
         
         <h3>📊 答題歷史紀錄</h3>
@@ -55,28 +56,29 @@
     <div id="div3" class="hidden">
         <h3>🏆 比賽實時總積分排行</h3>
         <div id="rlist">載入最新排名中...</div>
-        <button style="background:#666; margin-top:20px;" id="backbtn">返回遊戲</button>
+        <button style="background:#666; margin-top:20px;" onclick="goback()">返回遊戲</button>
     </div>
 </div>
 
-<!-- 引入 Firebase 官方網頁端 SDK 模組 -->
-<script type="module">
-    import { initializeApp } from "https://gstatic.com";
-    import { getDatabase, ref, set, get, child } from "https://gstatic.com";
+<!-- 改用兼容性最高的傳統 CDN 引入（移除 type="module" 與 import，防止跨網域死鎖） -->
+<script src="https://gstatic.com"></script>
+<script src="https://gstatic.com"></script>
 
-    // 💡 您的專屬雲端金鑰設定已成功寫入對接
+<script>
+    // 您的專屬雲端金鑰設定
     const firebaseConfig = {
         apiKey: "AIzaSyCsNuB6PJLrRI0hk-SPmHPv1pQ_SpMtdRI",
-        authDomain: "my-1a2b-game.firebaseapp.com",
-        databaseURL: "https://my-1a2b-game-default-rtdb.firebaseio.com",
+        authDomain: "://firebaseapp.com",
+        databaseURL: "https://firebaseio.com",
         projectId: "my-1a2b-game",
         storageBucket: "my-1a2b-game.firebasestorage.app",
         messagingSenderId: "912928813860",
         appId: "1:912928813860:web:55bed08b9bc4cf13f939b1"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    // 初始化 Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     let user = "";
     let ans = "";
@@ -84,46 +86,48 @@
     let localData = {};
 
     // 雲端：讀取全體排行榜資料
-    async function refreshDataFromCloud() {
-        try {
-            const dbRef = ref(db);
-            const snapshot = await get(child(dbRef, 'leaderboard'));
-            if (snapshot.exists()) {
-                localData = snapshot.val() || {};
-            } else {
-                localData = {};
-            }
-        } catch (error) {
-            console.error("雲端資料讀取失敗:", error);
-        }
+    function refreshDataFromCloud(callback) {
+        db.ref('leaderboard').once('value').then((snapshot) => {
+            localData = snapshot.val() || {};
+            if (callback) callback();
+        }).catch((error) => {
+            console.error("讀取失敗:", error);
+            if (callback) callback();
+        });
     }
 
     // 雲端：上傳目前最新排行
-    async function saveToCloud() {
-        try {
-            await set(ref(db, 'leaderboard'), localData);
-        } catch (error) {
-            console.error("雲端資料同步失敗:", error);
-        }
+    function saveToCloud(callback) {
+        db.ref('leaderboard').set(localData).then(() => {
+            if (callback) callback();
+        }).catch((error) => {
+            console.error("上傳失敗:", error);
+            if (callback) callback();
+        });
     }
 
-    // 登入按鈕處理
-    document.getElementById("loginbtn").addEventListener("click", async function() {
-        let n = document.getElementById("inputname").value.trim();
+    function gologin() {
+        let n = document.getElementById("realname").value.trim();
         if (!n) { alert("請輸入名字！"); return; }
         user = n;
 
-        await refreshDataFromCloud();
-        
-        if (!localData[user]) {
-            localData[user] = { score: 0, games: 0 };
-            await saveToCloud();
-        }
-        
+        refreshDataFromCloud(function() {
+            if (!localData[user]) {
+                localData[user] = { score: 0, games: 0 };
+                saveToCloud(function() {
+                    proceedToGame();
+                });
+            } else {
+                proceedToGame();
+            }
+        });
+    }
+
+    function proceedToGame() {
         document.getElementById("div1").classList.add("hidden");
         document.getElementById("div2").classList.remove("hidden");
         start();
-    });
+    }
 
     function start() {
         let d = ['0','1','2','3','4','5','6','7','8','9'];
@@ -136,8 +140,7 @@
         document.getElementById("pinfo").innerText = `👤 ${user} (${localData[user].score}分 / 答對 ${localData[user].games} 次)`;
     }
 
-    // 猜題按鈕處理
-    document.getElementById("guessbtn").addEventListener("click", async function() {
+    function goguess() {
         let g = document.getElementById("inputnum").value.trim();
         if (!g) return;
 
@@ -154,57 +157,59 @@
             else if (ans.includes(g[i])) b++;
         }
 
-        let row = document.getElementById("htable").insertRow(0);
+        let tbody = document.getElementById("htable");
+        let row = tbody.insertRow(0);
         row.innerHTML = `<td style="padding:4px 0;">第 ${count} 次</td><td><b>${g}</b></td><td style="color:#007bff;">${a}A${b}B</td>`;
         document.getElementById("inputnum").value = "";
 
         if (a === 4) {
             let s = Math.max(0, 100 - (count - 1) * 5);
             
-            await refreshDataFromCloud();
-            
-            if (!localData[user]) localData[user] = { score: 0, games: 0 };
-            localData[user].score = Number(localData[user].score) + s;
-            localData[user].games = Number(localData[user].games) + 1;
-            
-            await saveToCloud();
-            alert(`🎉 答對了！答案是 ${ans}\n獲得 ${s} 分！`);
-            start();
+            refreshDataFromCloud(function() {
+                if (!localData[user]) localData[user] = { score: 0, games: 0 };
+                localData[user].score = Number(localData[user].score) + s;
+                localData[user].games = Number(data_user_games = localData[user].games || 0) + 1;
+                
+                saveToCloud(function() {
+                    alert(`🎉 答對了！答案是 ${ans}\n獲得 ${s} 分！`);
+                    start();
+                });
+            });
         } else {
             let next = Math.max(0, 100 - count * 5);
             document.getElementById("pnote").innerText = `💡 目前本次答對可得：${next} 分`;
         }
-    });
+    }
 
     // 支援按 Enter 鍵猜題
     document.getElementById("inputnum").addEventListener("keyup", function(e) {
-        if (e.key === "Enter") document.getElementById("guessbtn").click();
+        if (e.key === "Enter") goguess();
     });
 
-    // 切換至排行榜
-    document.getElementById("ranklink").addEventListener("click", async function() {
+    function gorank() {
         document.getElementById("div2").classList.add("hidden");
         document.getElementById("div3").classList.remove("hidden");
+        document.getElementById("rlist").innerHTML = "載入最新排名中...";
         
-        await refreshDataFromCloud();
-        
-        let sorted = Object.entries(localData).sort((x, y) => y[1].score - x[1].score);
-        let html = "";
-        sorted.forEach(([name, info], idx) => {
-            html += `
-                <div class="rank-item">
-                    <span><b>No.${idx+1}</b> <span class="rank-name">${name}</span> <span class="rank-games">(${info.games}次)</span></span>
-                    <span class="rank-score">${info.score} 分</span>
-                </div>`;
+        refreshDataFromCloud(function() {
+            let sorted = Object.entries(localData).sort((x, y) => (y[1].score || 0) - (x[1].score || 0));
+            let html = "";
+            sorted.forEach(([name, info], idx) => {
+                if(name === "測試") return;
+                html += `
+                    <div class="rank-item">
+                        <span><b>No.${idx+1}</b> <span class="rank-name">${name}</span> <span class="rank-games">(${info.games || 0}次)</span></span>
+                        <span class="rank-score">${info.score || 0} 分</span>
+                    </div>`;
+            });
+            document.getElementById("rlist").innerHTML = html || "<p>暫無排行</p>";
         });
-        document.getElementById("rlist").innerHTML = html || "<p>暫無排行</p>";
-    });
+    }
 
-    // 從排行榜返回遊戲
-    document.getElementById("backbtn").addEventListener("click", function() {
+    function goback() {
         document.getElementById("div3").classList.add("hidden");
         document.getElementById("div2").classList.remove("hidden");
-    });
+    }
 </script>
 </body>
 </html>
