@@ -74,7 +74,6 @@
             <h3>🏆 歷史總積分排行</h3>
             <div class="rank-list" id="rankList"></div>
             
-            <!-- 手動融合排行榜區塊（100% 繞過網路限制看見別人的分數） -->
             <div class="sync-box">
                 👥 <b>如何看到別人的分數？</b><br>
                 點選下方「複製我的同步碼」傳給對手，請對手點選「匯入對手同步碼」貼上，兩邊的排行榜就會合併並自動排序。
@@ -95,11 +94,10 @@
     let attempts = 0;
     const maxScore = 100;
     
-    // 完全使用瀏覽器本地快取，100% 避開任何阻斷性網路請求
-    let localLeaderboard = JSON.parse(localStorage.getItem('game_leaderboard_pure_local_v1')) || {};
+    let localLeaderboard = JSON.parse(localStorage.getItem('game_leaderboard_pure_v2')) || {};
 
     function saveData() {
-        localStorage.setItem('game_leaderboard_pure_local_v1', JSON.stringify(localLeaderboard));
+        localStorage.setItem('game_leaderboard_pure_v2', JSON.stringify(localLeaderboard));
     }
 
     function generateSecretNumber() {
@@ -118,7 +116,6 @@
         }
         saveData();
 
-        // 直接切換畫面，絕對可行
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('gameScreen').classList.remove('hidden');
         initGame();
@@ -176,8 +173,8 @@
     }
 
     function renderList() {
-        // 全體玩家依照總積分由高到低自動排序
-        let sorted = Object.entries(localLeaderboard).sort((x, y) => y[score] - x[score] || y[1].score - x[1].score);
+        // 修正後的精準排序語法
+        let sorted = Object.entries(localLeaderboard).sort((x, y) => y[1].score - x[1].score);
         
         let listHtml = "";
         let rankIndex = 1;
@@ -209,17 +206,15 @@
         }
     }
 
-    // 📋 功能 A：將自己這台手機的成績包裝成代碼
     function copySyncCode() {
         let code = btoa(encodeURIComponent(JSON.stringify(localLeaderboard)));
         navigator.clipboard.writeText(code).then(() => {
-            alert("📋 同步碼已成功複製！請用 LINE 或任何通訊軟體傳給你的對手。");
+            alert("📋 同步碼已成功複製！請傳給你的對手。");
         }).catch(() => {
             alert("請複製此代碼：\n\n" + code);
         });
     }
 
-    // 📥 功能 B：把對手的代碼與自己的排行榜融合成大排行
     function importSyncCode() {
         let code = prompt("請貼上對手傳給你的同步碼：");
         if (!code) return;
@@ -227,3 +222,5 @@
             let decodedData = JSON.parse(decodeURIComponent(atob(code.trim())));
             Object.keys(decodedData).forEach(name => {
                 if (localLeaderboard[name]) {
+                    localLeaderboard[name].score = Math.max(localLeaderboard[name].score, decodedData[name].score);
+                    localLeaderboard[name].games = Math.max(localLeaderboard[name].games, decodedData[name].games);
