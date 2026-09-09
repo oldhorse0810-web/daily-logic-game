@@ -211,7 +211,7 @@
                 return;
             }
             
-            // 💡 已修正：使用精準的陣列索引 [1] 讀取雲端對象資料屬性
+            // 💡 修正後的標準陣列物件取值語法
             let sorted = Object.entries(allData).sort((x, y) => {
                 let scoreX = (x && x[1]) ? (Number(x[1].score) || 0) : 0;
                 let scoreY = (y && y[1]) ? (Number(y[1].score) || 0) : 0;
