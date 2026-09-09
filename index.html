@@ -68,10 +68,9 @@
 <script src="https://gstatic.com"></script>
 
 <script>
-    // 已自動配置正確的專案數據庫網址
     const firebaseConfig = {
         apiKey: "AIzaSyCsNuB6PJLrRI0hk-SPmHPv1pQ_SpMtdRI",
-        authDomain: "my-1a2b-game.firebaseapp.com",
+        authDomain: "://firebaseapp.com",
         databaseURL: "https://firebaseio.com", 
         projectId: "my-1a2b-game",
         storageBucket: "my-1a2b-game.firebasestorage.app",
@@ -79,13 +78,18 @@
         appId: "1:912928813860:web:55bed08b9bc4cf13f939b1"
     };
 
-    // 初始化 Firebase
+    // 【終極安全鎖 1】完全隔離 Firebase 初始化錯誤，確保網頁絕不卡死
     let db = null;
+    let isFirebaseReady = false;
     try {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            isFirebaseReady = true;
+            console.log("Firebase 核心載入成功");
+        }
     } catch(e) {
-        console.error("Firebase 初始化失敗:", e);
+        console.error("Firebase 初始化遭遇崩潰型錯誤，已啟動防護阻斷：", e);
     }
 
     let user = "";
@@ -117,7 +121,6 @@
         return digits.slice(0, 4).join('');
     }
 
-    // 讀取本地緩存數據，防止雲端掛掉時卡死
     function loadLocalBackup() {
         let allPlayers = JSON.parse(localStorage.getItem('1a2b_players')) || {};
         if (allPlayers[user]) {
@@ -129,7 +132,6 @@
         }
     }
 
-    // 儲存本地緩存
     function saveLocalBackup() {
         let allPlayers = JSON.parse(localStorage.getItem('1a2b_players')) || {};
         allPlayers[user] = myData;
@@ -137,31 +139,35 @@
     }
 
     function gologin() {
-        let n = document.getElementById("realname").value.trim();
-        if (!n) { alert("請輸入名字！"); return; }
-        
-        user = n.replace(/[\.\#\$\[\]\/]/g, ""); 
-        
-        // 預先載入本地備份分數，確保 100% 能先跳轉進入遊戲
-        loadLocalBackup();
-        document.getElementById("div1").classList.add("hidden");
-        document.getElementById("div2").classList.remove("hidden");
-        start();
+        try {
+            let n = document.getElementById("realname").value.trim();
+            if (!n) { alert("請輸入名字！"); return; }
+            
+            user = n.replace(/[\.\#\$\[\]\/]/g, ""); 
+            
+            // 【終極安全鎖 2】優先進行本地跳轉，不論雲端狀態如何，按鈕點擊 100% 有反應
+            loadLocalBackup();
+            document.getElementById("div1").classList.add("hidden");
+            document.getElementById("div2").classList.remove("hidden");
+            start();
 
-        // 異步嘗試同步雲端數據，若成功則更新分數
-        if (db) {
-            db.ref('players/' + user).once('value').then((snapshot) => {
-                let val = snapshot.val();
-                if (val) {
-                    // 若雲端分數比本地高，採用雲端分數
-                    myData.score = Math.max(myData.score, parseInt(val.score) || 0);
-                    myData.games = Math.max(myData.games, parseInt(val.games) || 0);
-                    document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score}分 / 答對 ${myData.games} 次)`;
-                    saveLocalBackup();
-                }
-            }).catch((err) => {
-                console.log("Firebase 讀取受阻，目前運行於本地緩存模式：", err.message);
-            });
+            // 將雲端讀取完全異步化
+            if (isFirebaseReady && db) {
+                db.ref('players/' + user).once('value').then((snapshot) => {
+                    let val = snapshot.val();
+                    if (val) {
+                        myData.score = Math.max(myData.score, parseInt(val.score) || 0);
+                        myData.games = Math.max(myData.games, parseInt(val.games) || 0);
+                        document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score}分 / 答對 ${myData.games} 次)`;
+                        saveLocalBackup();
+                    }
+                }).catch((err) => {
+                    console.warn("雲端讀取遭拒，切換為本地獨立累積模式。");
+                });
+            }
+        } catch(err) {
+            alert("網頁核心發生未知錯誤，請重新整理頁面。");
+            console.error(err);
         }
     }
 
@@ -204,12 +210,12 @@
             myData.games += 1;
             saveLocalBackup();
             
-            if (db) {
+            if (isFirebaseReady && db) {
                 db.ref('players/' + user).set(myData).then(() => {
                     alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！分數已同步至雲端！`);
                     start();
                 }).catch((e) => {
-                    alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！\n(⚠️ 提示：分數已存在本地，但雲端儲存失敗，請檢查資料庫 Rules 權限設定)`);
+                    alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！\n(💡 分數已留存於本地裝置，雲端同步受阻)`);
                     start();
                 });
             } else {
@@ -231,8 +237,8 @@
         document.getElementById("div3").classList.remove("hidden");
         document.getElementById("rlist").innerHTML = "正在串聯雲端排行榜...";
         
-        if (!db) {
-            document.getElementById("rlist").innerHTML = "❌ Firebase 未成功初始化，無法讀取線上排行。";
+        if (!isFirebaseReady || !db) {
+            showLocalRankTable("❌ Firebase SDK 初始化受阻，已為您展現「本地局域排行榜」：");
             return;
         }
 
@@ -242,14 +248,3 @@
                 document.getElementById("rlist").innerHTML = "目前伺服器尚無排名資料。";
                 return;
             }
-            
-            let arr = [];
-            for (let name in allData) {
-                arr.push({
-                    name: name,
-                    score: allData[name].score || 0,
-                    games: allData[name].games || 0
-                });
-            }
-            
-            arr.sort((x, y) => y.score - x.score);
