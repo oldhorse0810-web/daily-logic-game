@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 1A2B 腦力挑戰大賽 (終極流暢版)</title>
+    <title>🧠 1A2B 全球腦力挑戰大賽</title>
     <style>
         body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .box { background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 420px; text-align: center; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -25,7 +25,7 @@
     <!-- 畫面 1：登入 -->
     <div id="div1">
         <h2>🧠 1A2B 腦力挑戰大賽</h2>
-        <p style="font-size:13px; color:#e91e63; font-weight:bold;">📢 提示：輸入你曾用過的名字，分數會繼續累積喔！</p>
+        <p style="font-size:13px; color:#e91e63; font-weight:bold;">📢 提示：輸入曾用過的名字，分數會繼續累積喔！</p>
         <input type="text" id="realname" placeholder="例如：豪 / 冠宇">
         <button onclick="gologin()">進入遊戲</button>
     </div>
@@ -57,13 +57,37 @@
 
     <!-- 畫面 3：排行榜 -->
     <div id="div3" class="hidden">
-        <h3>🏆 歷史總積分排行榜</h3>
+        <h3>🏆 全球連線總積分排行</h3>
         <div id="rlist">載入最新排名中...</div>
         <button style="background:#666; margin-top:20px;" onclick="goback()">返回遊戲</button>
     </div>
 </div>
 
+<!-- SDK 載入防錯處理 -->
+<script src="https://gstatic.com"></script>
+<script src="https://gstatic.com"></script>
+
 <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCsNuB6PJLrRI0hk-SPmHPv1pQ_SpMtdRI",
+        authDomain: "://firebaseapp.com",
+        databaseURL: "https://firebaseio.com", 
+        projectId: "my-1a2b-game",
+        storageBucket: "my-1a2b-game.firebasestorage.app",
+        messagingSenderId: "912928813860",
+        appId: "1:912928813860:web:55bed08b9bc4cf13f939b1"
+    };
+
+    let db = null;
+    try {
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        }
+    } catch(e) {
+        console.error("Firebase init error:", e);
+    }
+
     let user = "";
     let ans = "";
     let count = 0;
@@ -77,7 +101,6 @@
         return `${yyyy}-${mm}-${dd}`;
     }
 
-    // 每天固定根據日期生成一組 4 個不重複數字
     function generateDailyNumber() {
         let dateStr = getTodayString();
         let hash = 0;
@@ -94,35 +117,45 @@
         return digits.slice(0, 4).join('');
     }
 
-    // 從裝置本地儲存讀取玩家資料
-    function loadMyScore() {
-        let allPlayers = JSON.parse(localStorage.getItem('1a2b_v2_players')) || {};
-        if (allPlayers[user]) {
-            myData.score = parseInt(allPlayers[user].score) || 0;
-            myData.games = parseInt(allPlayers[user].games) || 0;
+    function loadLocal() {
+        let all = JSON.parse(localStorage.getItem('1a2b_sync_players')) || {};
+        if (all[user]) {
+            myData.score = parseInt(all[user].score) || 0;
+            myData.games = parseInt(all = all[user].games) || 0;
         } else {
-            myData.score = 0;
-            myData.games = 0;
+            myData.score = 0; myData.games = 0;
         }
     }
 
-    // 儲存玩家資料到裝置本地儲存
-    function saveMyScore() {
-        let allPlayers = JSON.parse(localStorage.getItem('1a2b_v2_players')) || {};
-        allPlayers[user] = myData;
-        localStorage.setItem('1a2b_v2_players', JSON.stringify(allPlayers));
+    function saveLocal() {
+        let all = JSON.parse(localStorage.getItem('1a2b_sync_players')) || {};
+        all[user] = myData;
+        localStorage.setItem('1a2b_sync_players', JSON.stringify(all));
     }
 
     function gologin() {
         let n = document.getElementById("realname").value.trim();
         if (!n) { alert("請輸入名字！"); return; }
-        
         user = n.replace(/[\.\#\$\[\]\/]/g, ""); 
         
-        loadMyScore();
+        // 1. 優先切換畫面，確保絕對進得去
+        loadLocal();
         document.getElementById("div1").classList.add("hidden");
         document.getElementById("div2").classList.remove("hidden");
         start();
+
+        // 2. 背景靜默請求雲端資料，不阻塞流程
+        if (db) {
+            db.ref('players/' + user).once('value').then((snapshot) => {
+                let val = snapshot.val();
+                if (val) {
+                    myData.score = Math.max(myData.score, parseInt(val.score) || 0);
+                    myData.games = Math.max(myData.games, parseInt(val.games) || 0);
+                    document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score}分 / 答對 ${myData.games} 次)`;
+                    saveLocal();
+                }
+            }).catch((err) => { console.log("雲端讀取跳過，使用本地數據"); });
+        }
     }
 
     function start() {
@@ -159,13 +192,17 @@
 
         if (a === 4) {
             let s = Math.max(0, 100 - (count - 1) * 5);
-            
             myData.score += s;
             myData.games += 1;
+            saveLocal();
             
-            saveMyScore();
             alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！`);
             start();
+
+            // 背景寫入雲端
+            if (db) {
+                db.ref('players/' + user).set(myData).catch((e) => { console.log("雲端寫入失敗"); });
+            }
         } else {
             let next = Math.max(0, 100 - count * 5);
             document.getElementById("pnote").innerText = `💡 目前本次答對可得：${next} 分`;
@@ -179,45 +216,38 @@
     function gorank() {
         document.getElementById("div2").classList.add("hidden");
         document.getElementById("div3").classList.remove("hidden");
+        document.getElementById("rlist").innerHTML = "正在串聯雲端排行榜...";
         
-        let allData = JSON.parse(localStorage.getItem('1a2b_v2_players')) || {};
-        
-        let arr = [];
-        for (let name in allData) {
-            arr.push({
-                name: name,
-                score: allData[name].score || 0,
-                games: allData[name].games || 0
-            });
-        }
-        
-        if (arr.length === 0) {
-            document.getElementById("rlist").innerHTML = "目前尚無排名資料。";
+        if (!db) {
+            showFallbackRank("無法初始化雲端，顯示本地儲存排行：");
             return;
         }
-        
-        arr.sort((x, y) => y.score - x.score);
-        
-        let html = "";
-        arr.forEach((item, index) => {
-            html += `
-            <div class="rank-item">
-                <span>
-                    <span>${index + 1}. </span>
-                    <span class="rank-name">${item.name}</span>
-                    <span class="rank-games">(答對 ${item.games} 次)</span>
-                </span>
-                <span class="rank-score">${item.score} 分</span>
-            </div>`;
+
+        db.ref('players').once('value').then((snapshot) => {
+            let allData = snapshot.val();
+            if (!allData) {
+                document.getElementById("rlist").innerHTML = "目前伺服器尚無排名資料。";
+                return;
+            }
+            let arr = [];
+            for (let name in allData) {
+                arr.push({
+                    name: name,
+                    score: allData[name].score || 0,
+                    games: allData[name].games || 0
+                });
+            }
+            renderRank(arr);
+        }).catch((err) => {
+            showFallbackRank("雲端讀取遭拒（請確認 Firebase Rules）。顯示本地排行：");
         });
-        document.getElementById("rlist").innerHTML = html;
     }
 
-    function goback() {
-        document.getElementById("div3").classList.add("hidden");
-        document.getElementById("div2").classList.remove("hidden");
-    }
-</script>
-
-</body>
-</html>
+    function showFallbackRank(msg) {
+        let all = JSON.parse(localStorage.getItem('1a2b_sync_players')) || {};
+        let arr = [];
+        for (let name in all) {
+            arr.push({ name: name, score: all[name].score || 0, games: all[name].games || 0 });
+        }
+        document.getElementById("rlist").innerHTML = `<div style="font-size:12px; color:#e91e63; margin-bottom:10px; text-align:left;">${msg}</div>`;
+        renderRank(arr, true);
