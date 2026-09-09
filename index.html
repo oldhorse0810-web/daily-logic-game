@@ -25,7 +25,7 @@
     <div id="div1">
         <h2>🧠 1A2B 腦力挑戰大賽</h2>
         <p style="font-size:13px; color:#e91e63; font-weight:bold;">📢 提示：請填名字中的一個字，會搞混時再多一字。</p>
-        <input type="text" id="inputname" placeholder="ignore_me" style="display:none;"> <!-- 防瀏覽器自動填入 -->
+        <input type="text" id="inputname" placeholder="ignore_me" style="display:none;">
         <input type="text" id="realname" placeholder="例如：豪 / 冠宇">
         <button onclick="gologin()">進入遊戲</button>
     </div>
@@ -60,7 +60,7 @@
     </div>
 </div>
 
-<!-- 改用兼容性最高的傳統 CDN 引入（移除 type="module" 與 import，防止跨網域死鎖） -->
+<!-- 引入穩定相容的 Firebase SDK -->
 <script src="https://gstatic.com"></script>
 <script src="https://gstatic.com"></script>
 
@@ -76,7 +76,6 @@
         appId: "1:912928813860:web:55bed08b9bc4cf13f939b1"
     };
 
-    // 初始化 Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -85,7 +84,6 @@
     let count = 0;
     let localData = {};
 
-    // 雲端：讀取全體排行榜資料
     function refreshDataFromCloud(callback) {
         db.ref('leaderboard').once('value').then((snapshot) => {
             localData = snapshot.val() || {};
@@ -96,7 +94,6 @@
         });
     }
 
-    // 雲端：上傳目前最新排行
     function saveToCloud(callback) {
         db.ref('leaderboard').set(localData).then(() => {
             if (callback) callback();
@@ -137,7 +134,7 @@
         document.getElementById("htable").innerHTML = "";
         document.getElementById("inputnum").value = "";
         document.getElementById("pnote").innerText = "💡 目前本次答對可得：100 分";
-        document.getElementById("pinfo").innerText = `👤 ${user} (${localData[user].score}分 / 答對 ${localData[user].games} 次)`;
+        document.getElementById("pinfo").innerText = `👤 ${user} (${localData[user].score || 0}分 / 答對 ${localData[user].games || 0} 次)`;
     }
 
     function goguess() {
@@ -167,8 +164,10 @@
             
             refreshDataFromCloud(function() {
                 if (!localData[user]) localData[user] = { score: 0, games: 0 };
-                localData[user].score = Number(localData[user].score) + s;
-                localData[user].games = Number(data_user_games = localData[user].games || 0) + 1;
+                
+                // 💡 修正後的安全相加寫法
+                localData[user].score = (Number(localData[user].score) || 0) + s;
+                localData[user].games = (Number(localData[user].games) || 0) + 1;
                 
                 saveToCloud(function() {
                     alert(`🎉 答對了！答案是 ${ans}\n獲得 ${s} 分！`);
@@ -181,7 +180,6 @@
         }
     }
 
-    // 支援按 Enter 鍵猜題
     document.getElementById("inputnum").addEventListener("keyup", function(e) {
         if (e.key === "Enter") goguess();
     });
