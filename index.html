@@ -21,8 +21,11 @@
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background-color: #f2f2f2; }
-        .rank-list { text-align: left; padding: 0 10px; }
-        .rank-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .rank-list { text-align: left; padding: 0 10px; max-height: 300px; overflow-y: auto; }
+        .rank-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 15px; }
+        .rank-name { font-weight: bold; }
+        .rank-count { color: #888; font-size: 12px; margin-left: 5px; }
+        .rank-score { color: #4CAF50; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -77,19 +80,29 @@
     let attempts = 0;
     const maxScore = 100;
 
-    // 讀取排行資料（確保數值正確轉為數字）
+    // 讀取排行資料，結構調整為：{ 玩家名: { score: 總分, count: 總作答次數 } }
     function getLeaderboardData() {
-        let rawData = JSON.parse(localStorage.getItem('game_leaderboard_scores')) || {};
+        let rawData = JSON.parse(localStorage.getItem('game_leaderboard_v2')) || {};
         let cleanData = {};
-        // 強制將所有讀出來的分數轉換為數字數字型態
         Object.keys(rawData).forEach(key => {
-            cleanData[key] = Number(rawData[key]) || 0;
+            if (typeof rawData[key] === 'object' && rawData[key] !== null) {
+                cleanData[key] = {
+                    score: Number(rawData[key].score) || 0,
+                    count: Number(rawData[key].count) || 0
+                };
+            } else {
+                // 相容舊資料轉移
+                cleanData[key] = {
+                    score: Number(rawData[key]) || 0,
+                    count: 0
+                };
+            }
         });
         return cleanData;
     }
     
     function saveLeaderboardData(data) {
-        localStorage.setItem('game_leaderboard_scores', JSON.stringify(data));
+        localStorage.setItem('game_leaderboard_v2', JSON.stringify(data));
     }
 
     function generateSecretNumber() {
@@ -104,8 +117,8 @@
         
         currentUsername = name;
         let data = getLeaderboardData();
-        if (data[currentUsername] === undefined) {
-            data[currentUsername] = 0;
+        if (!data[currentUsername]) {
+            data[currentUsername] = { score: 0, count: 0 };
         }
         saveLeaderboardData(data);
 
@@ -125,7 +138,7 @@
 
     function updateInfoBar() {
         let data = getLeaderboardData();
-        let userScore = data[currentUsername] !== undefined ? data[currentUsername] : 0;
+        let userScore = data[currentUsername] ? data[currentUsername].score : 0;
         document.getElementById('playerInfo').innerText = `👤 玩家: ${currentUsername} (${userScore}分)`;
     }
 
@@ -155,9 +168,9 @@
             let finalScore = Math.max(0, maxScore - (attempts - 1) * 5);
             let data = getLeaderboardData();
             
-            // 核心修正：確保兩者都是數字，並進行正確的「數值累加」
-            let currentScore = Number(data[currentUsername]) || 0;
-            data[currentUsername] = currentScore + Number(finalScore);
+            // 累加分數與總作答次數
+            data[currentUsername].score = (data[currentUsername].score || 0) + Number(finalScore);
+            data[currentUsername].count = (data[currentUsername].count || 0) + Number(attempts);
             
             saveLeaderboardData(data);
 
@@ -178,10 +191,20 @@
             lbArea.classList.remove('hidden');
             
             let data = getLeaderboardData();
-            let sorted = Object.entries(data).sort((x, y) => y[1] - x[1]); // 依分數由高到低排序
+            
+            // 將物件轉為陣列並嚴格按照「總積分由高到低」排序
+            let sorted = Object.entries(data).sort((x, y) => y[1].score - x[1].score);
+            
             let listHtml = "";
-            sorted.forEach(([name, score], idx) => {
-                listHtml += `<div class="rank-item"><span>No.${idx+1} ${name}</span><span>${score} 分</span></div>`;
+            sorted.forEach(([name, info], idx) => {
+                listHtml += `
+                    <div class="rank-item">
+                        <span>
+                            <b>No.${idx+1}</b> <span class="rank-name">${name}</span>
+                            <span class="rank-count">(作答 ${info.count} 次)</span>
+                        </span>
+                        <span class="rank-score">${info.score} 分</span>
+                    </div>`;
             });
             document.getElementById('rankList').innerHTML = listHtml || "<p>暫無排行資料</p>";
         } else {
