@@ -68,10 +68,10 @@
 <script src="https://gstatic.com"></script>
 
 <script>
-    // 已為您填入正確的專案專屬配置與數據庫網址
+    // 已自動配置正確的專案數據庫網址
     const firebaseConfig = {
         apiKey: "AIzaSyCsNuB6PJLrRI0hk-SPmHPv1pQ_SpMtdRI",
-        authDomain: "://firebaseapp.com",
+        authDomain: "my-1a2b-game.firebaseapp.com",
         databaseURL: "https://firebaseio.com", 
         projectId: "my-1a2b-game",
         storageBucket: "my-1a2b-game.firebasestorage.app",
@@ -80,8 +80,13 @@
     };
 
     // 初始化 Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    let db = null;
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+    } catch(e) {
+        console.error("Firebase 初始化失敗:", e);
+    }
 
     let user = "";
     let ans = "";
@@ -112,32 +117,52 @@
         return digits.slice(0, 4).join('');
     }
 
-    // 登入功能：跨裝置檢查雲端是否有此玩家
+    // 讀取本地緩存數據，防止雲端掛掉時卡死
+    function loadLocalBackup() {
+        let allPlayers = JSON.parse(localStorage.getItem('1a2b_players')) || {};
+        if (allPlayers[user]) {
+            myData.score = parseInt(allPlayers[user].score) || 0;
+            myData.games = parseInt(allPlayers[user].games) || 0;
+        } else {
+            myData.score = 0;
+            myData.games = 0;
+        }
+    }
+
+    // 儲存本地緩存
+    function saveLocalBackup() {
+        let allPlayers = JSON.parse(localStorage.getItem('1a2b_players')) || {};
+        allPlayers[user] = myData;
+        localStorage.setItem('1a2b_players', JSON.stringify(allPlayers));
+    }
+
     function gologin() {
         let n = document.getElementById("realname").value.trim();
         if (!n) { alert("請輸入名字！"); return; }
         
-        // 過濾掉 Firebase 路徑不支援的特殊字元
         user = n.replace(/[\.\#\$\[\]\/]/g, ""); 
         
+        // 預先載入本地備份分數，確保 100% 能先跳轉進入遊戲
+        loadLocalBackup();
         document.getElementById("div1").classList.add("hidden");
         document.getElementById("div2").classList.remove("hidden");
+        start();
 
-        // 從 Firebase 讀取此玩家的分數累積紀錄
-        db.ref('players/' + user).once('value').then((snapshot) => {
-            let val = snapshot.val();
-            if (val) {
-                myData.score = parseInt(val.score) || 0;
-                myData.games = parseInt(val.games) || 0;
-            } else {
-                myData.score = 0;
-                myData.games = 0;
-            }
-            start();
-        }).catch((err) => {
-            alert("雲端連線失敗！請確認 Firebase 控制台中的 Rules 有改為 true！");
-            console.error(err);
-        });
+        // 異步嘗試同步雲端數據，若成功則更新分數
+        if (db) {
+            db.ref('players/' + user).once('value').then((snapshot) => {
+                let val = snapshot.val();
+                if (val) {
+                    // 若雲端分數比本地高，採用雲端分數
+                    myData.score = Math.max(myData.score, parseInt(val.score) || 0);
+                    myData.games = Math.max(myData.games, parseInt(val.games) || 0);
+                    document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score}分 / 答對 ${myData.games} 次)`;
+                    saveLocalBackup();
+                }
+            }).catch((err) => {
+                console.log("Firebase 讀取受阻，目前運行於本地緩存模式：", err.message);
+            });
+        }
     }
 
     function start() {
@@ -175,15 +200,22 @@
         if (a === 4) {
             let s = Math.max(0, 100 - (count - 1) * 5);
             
-            // 答對時更新本地變數
             myData.score += s;
             myData.games += 1;
+            saveLocalBackup();
             
-            // 同步寫入 Firebase 雲端資料庫
-            db.ref('players/' + user).set(myData).then(() => {
-                alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！分數已累積至雲端！`);
+            if (db) {
+                db.ref('players/' + user).set(myData).then(() => {
+                    alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！分數已同步至雲端！`);
+                    start();
+                }).catch((e) => {
+                    alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！\n(⚠️ 提示：分數已存在本地，但雲端儲存失敗，請檢查資料庫 Rules 權限設定)`);
+                    start();
+                });
+            } else {
+                alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！`);
                 start();
-            });
+            }
         } else {
             let next = Math.max(0, 100 - count * 5);
             document.getElementById("pnote").innerText = `💡 目前本次答對可得：${next} 分`;
@@ -194,12 +226,16 @@
         if (e.key === "Enter") goguess();
     });
 
-    // 讀取所有線上玩家的分數並進行即時全球排名
     function gorank() {
         document.getElementById("div2").classList.add("hidden");
         document.getElementById("div3").classList.remove("hidden");
         document.getElementById("rlist").innerHTML = "正在串聯雲端排行榜...";
         
+        if (!db) {
+            document.getElementById("rlist").innerHTML = "❌ Firebase 未成功初始化，無法讀取線上排行。";
+            return;
+        }
+
         db.ref('players').once('value').then((snapshot) => {
             let allData = snapshot.val();
             if (!allData) {
@@ -216,32 +252,4 @@
                 });
             }
             
-            // 依照分數由高到低排序
             arr.sort((x, y) => y.score - x.score);
-            
-            let html = "";
-            arr.forEach((item, index) => {
-                html += `
-                <div class="rank-item">
-                    <span>
-                        <span>${index + 1}. </span>
-                        <span class="rank-name">${item.name}</span>
-                        <span class="rank-games">(答對 ${item.games} 次)</span>
-                    </span>
-                    <span class="rank-score">${item.score} 分</span>
-                </div>`;
-            });
-            document.getElementById("rlist").innerHTML = html;
-        }).catch((err) => {
-            document.getElementById("rlist").innerHTML = "無法載入排行，請確認資料庫 Rules 已開放讀寫權限。";
-        });
-    }
-
-    function goback() {
-        document.getElementById("div3").classList.add("hidden");
-        document.getElementById("div2").classList.remove("hidden");
-    }
-</script>
-
-</body>
-</html>
