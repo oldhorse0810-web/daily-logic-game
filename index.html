@@ -211,7 +211,7 @@
                 return;
             }
             
-            // 💡 修正後正確的物件取值結構
+            // 修正完成：正確指向陣列內的第二個欄位物件（[1]）進行分數對比
             let sorted = Object.entries(allData).sort((x, y) => {
                 let scoreX = (x && x[1]) ? (Number(x[1].score) || 0) : 0;
                 let scoreY = (y && y[1]) ? (Number(y[1].score) || 0) : 0;
