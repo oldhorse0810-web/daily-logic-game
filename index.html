@@ -109,13 +109,12 @@
         return digits.slice(0, 4).join('');
     }
 
-    // 💡 修正點 1：使用獨立路徑定位，確保讀取出的數值精確
     function loadMyScore(callback) {
         db.ref('players/' + user).once('value').then((snapshot) => {
             let val = snapshot.val();
             if (val) {
-                myData.score = Number(val.score) || 0;
-                myData.games = Number(val.games) || 0;
+                myData.score = parseInt(val.score) || 0;
+                myData.games = parseInt(val.games) || 0;
             } else {
                 myData.score = 0;
                 myData.games = 0;
@@ -182,8 +181,8 @@
             let s = Math.max(0, 100 - (count - 1) * 5);
             
             loadMyScore(function() {
-                myData.score = myData.score + s;
-                myData.games = myData.games + 1;
+                myData.score = parseInt(myData.score) + s;
+                myData.games = parseInt(myData.games) + 1;
                 
                 saveMyScore(function() {
                     alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！`);
@@ -200,7 +199,6 @@
         if (e.key === "Enter") goguess();
     });
 
-    // 💡 修正點 2：改用正確的二維陣列位置索引對齊物件屬性（[1].score），根除暫無排行的錯誤
     function gorank() {
         document.getElementById("div2").classList.add("hidden");
         document.getElementById("div3").classList.remove("hidden");
@@ -213,10 +211,10 @@
                 return;
             }
             
-            // 正確語法：x[1] 代表該玩家的雲端資料物件
+            // 修正取值陣列結構：x[1] 代表該玩家的雲端資料物件
             let sorted = Object.entries(allData).sort((x, y) => {
-                let scoreX = x[1] ? (Number(x[1].score) || 0) : 0;
-                let scoreY = y[1] ? (Number(y[1].score) || 0) : 0;
+                let scoreX = x && x[1] ? (Number(x[1].score) || 0) : 0;
+                let scoreY = y && y[1] ? (Number(y[1].score) || 0) : 0;
                 return scoreY - scoreX;
             });
             
