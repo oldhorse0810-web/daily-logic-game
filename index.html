@@ -87,26 +87,49 @@
     let attempts = 0;
     const maxScore = 100;
     let globalLeaderboard = {};
+    let isCloudActive = true; // 標記目前是否成功連上雲端
 
+    // 從雲端下載最新的所有人總分數
     async function fetchCloudData() {
         document.getElementById('syncStatus').innerText = "(同步中...)";
+        // 如果一開始就確認沒設好金鑰，直接切離線
+        if (CONFIG.API_KEY.includes("填入") || CONFIG.BIN_ID.includes("填入")) {
+            setFallbackMode("未偵測到自訂金鑰，已切換至單一裝置本地模式。");
+            return;
+        }
+
         try {
             let response = await fetch(`https://jsonbin.io{CONFIG.BIN_ID}/latest`, {
                 method: 'GET',
                 headers: { 'X-Master-Key': CONFIG.API_KEY }
             });
+            
+            if (!response.ok) {
+                throw new Error(`伺服器回應錯誤碼: ${response.status}。請檢查 Master Key 或 Bin ID 是否正確。`);
+            }
+            
             let resData = await response.json();
             globalLeaderboard = resData.record || {};
-            document.getElementById('syncStatus').innerText = "(已連線)";
+            document.getElementById('syncStatus').innerText = "(雲端連線成功)";
+            isCloudActive = true;
         } catch (error) {
-            console.error("雲端讀取失敗", error);
-            document.getElementById('syncStatus').innerText = "(離線)";
-            globalLeaderboard = JSON.parse(localStorage.getItem('backup_leaderboard')) || {};
+            console.error(error);
+            setFallbackMode(`雲端連線失敗！\n原因: ${error.message}\n\n系統已自動切換為「本地備援模式」，您可以正常玩遊戲，但分數暫時無法與朋友同步。`);
         }
     }
 
+    function setFallbackMode(msg) {
+        alert(msg);
+        document.getElementById('syncStatus').innerText = "(本地模式)";
+        globalLeaderboard = JSON.parse(localStorage.getItem('backup_leaderboard_v4')) || {};
+        isCloudActive = false;
+    }
+
+    // 將最新的所有人總分數上傳到雲端
     async function saveCloudData(newData) {
-        localStorage.setItem('backup_leaderboard', JSON.stringify(newData));
+        localStorage.setItem('backup_leaderboard_v4', JSON.stringify(newData));
+        if (!isCloudActive) return; // 離線狀態下不上傳
+
         try {
             await fetch(`https://jsonbin.io{CONFIG.BIN_ID}`, {
                 method: 'PUT',
@@ -135,8 +158,9 @@
         document.getElementById('loginBtn').disabled = true;
 
         currentUsername = name;
-        await fetchCloudData();
+        await fetchCloudData(); // 嘗試同步
 
+        // 核心安全閥：無論有沒有連上雲端，都保證建立資料並放行進入遊戲畫面
         if (!globalLeaderboard[currentUsername]) {
             globalLeaderboard[currentUsername] = { score: 0, games: 0 };
             await saveCloudData(globalLeaderboard);
@@ -184,7 +208,7 @@
         if (a === 4) {
             let finalScore = Math.max(0, maxScore - (attempts - 1) * 5);
             
-            await fetchCloudData();
+            if (isCloudActive) await fetchCloudData();
             
             if(!globalLeaderboard[currentUsername]) {
                 globalLeaderboard[currentUsername] = { score: 0, games: 0 };
@@ -211,23 +235,3 @@
             playArea.classList.add('hidden');
             lbArea.classList.remove('hidden');
             
-            await fetchCloudData();
-            
-            let sorted = Object.entries(globalLeaderboard).sort((x, y) => y[1].score - x[1].score);
-            
-            let listHtml = "";
-            let rankIndex = 1;
-            sorted.forEach(([name, info]) => {
-                // 💡 核心過濾：自動忽略一開始建立用的「測試」資料
-                if (name === "測試") return;
-                
-                listHtml += `
-                    <div class="rank-item">
-                        <span>
-                            <b>No.${rankIndex}</b> <span class="rank-name">${name}</span>
-                            <span class="rank-games">(${info.games}次)</span>
-                        </span>
-                        <span class="rank-score">${info.score} 分</span>
-                    </div>`;
-                rankIndex++;
-            });
