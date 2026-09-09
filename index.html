@@ -63,12 +63,12 @@
     </div>
 </div>
 
-<!-- 穩定的 Firebase SDK -->
+<!-- 引用穩定版 Firebase SDK -->
 <script src="https://gstatic.com"></script>
 <script src="https://gstatic.com"></script>
 
 <script>
-    // ⚠️ 請務必將以下貼換成你自己的 Firebase Config 參數
+    // 已為您填入正確的專案專屬配置與數據庫網址
     const firebaseConfig = {
         apiKey: "AIzaSyCsNuB6PJLrRI0hk-SPmHPv1pQ_SpMtdRI",
         authDomain: "://firebaseapp.com",
@@ -112,12 +112,12 @@
         return digits.slice(0, 4).join('');
     }
 
-    // 登入功能：連線檢查雲端是否有此玩家
+    // 登入功能：跨裝置檢查雲端是否有此玩家
     function gologin() {
         let n = document.getElementById("realname").value.trim();
         if (!n) { alert("請輸入名字！"); return; }
         
-        // 過濾掉 Firebase 不支援的特殊字元
+        // 過濾掉 Firebase 路徑不支援的特殊字元
         user = n.replace(/[\.\#\$\[\]\/]/g, ""); 
         
         document.getElementById("div1").classList.add("hidden");
@@ -135,7 +135,7 @@
             }
             start();
         }).catch((err) => {
-            alert("雲端連線失敗，請檢查 Firebase Rules 權限設定！");
+            alert("雲端連線失敗！請確認 Firebase 控制台中的 Rules 有改為 true！");
             console.error(err);
         });
     }
@@ -194,7 +194,7 @@
         if (e.key === "Enter") goguess();
     });
 
-    // 讀取所有線上玩家的分數並進行全球排名
+    // 讀取所有線上玩家的分數並進行即時全球排名
     function gorank() {
         document.getElementById("div2").classList.add("hidden");
         document.getElementById("div3").classList.remove("hidden");
@@ -233,7 +233,7 @@
             });
             document.getElementById("rlist").innerHTML = html;
         }).catch((err) => {
-            document.getElementById("rlist").innerHTML = "無法載入排行，請確認資料庫 Rules 開放讀寫。";
+            document.getElementById("rlist").innerHTML = "無法載入排行，請確認資料庫 Rules 已開放讀寫權限。";
         });
     }
 
