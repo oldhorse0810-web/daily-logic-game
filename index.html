@@ -211,7 +211,7 @@
                 return;
             }
             
-            // 💡 修正後正確的物件取值結構（[1] 代表 Object.entries 的資料值物件）
+            // 💡 修正處：將空括號改回正確的欄位值索引位置 [1] 讀取物件
             let sorted = Object.entries(allData).sort((x, y) => {
                 let scoreX = (x && x[1]) ? (Number(x[1].score) || 0) : 0;
                 let scoreY = (y && y[1]) ? (Number(y[1].score) || 0) : 0;
