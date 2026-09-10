@@ -43,7 +43,6 @@
         <p id="pnote" style="color:#ff5722; font-weight:bold;">目前本次答對可得：100 分</p>
         
         <div style="display:flex; gap:8px;">
-            <!-- 核心修正：將鍵盤事件綁定移到行內，徹底消除因元素隱藏導致載入失敗的錯誤 -->
             <input type="text" id="inputnum" maxlength="4" placeholder="輸入 4 位不重複數字" style="flex:2; margin:0;" onkeyup="checkEnter(event)">
             <button onclick="goguess()" style="flex:1; margin:0; background-color:#28a745;">猜！</button>
         </div>
@@ -65,7 +64,6 @@
 </div>
 
 <script>
-    // 使用瀏覽器內建原生 API，不引用任何外部第三方可能壞掉的 SDK
     const dbRestUrl = "https://firebaseio.com";
 
     let user = "";
@@ -119,24 +117,26 @@
         if (!n) { alert("請輸入名字！"); return; }
         user = n.replace(/[\.\#\$\[\]\/]/g, ""); 
         
-        // 優先完成介面切換，保證不論網路雲端狀況如何，100% 先進遊戲
+        // 核心修正：點擊時 100% 先切換畫面，不讓雲端網路請求阻塞 UI 執行
         loadLocal();
         document.getElementById("div1").classList.add("hidden");
         document.getElementById("div2").classList.remove("hidden");
         start();
 
-        // 背景向雲端要求資料
-        fetch(`${dbRestUrl}/${user}.json`)
-            .then(res => res.json())
-            .then(val => {
-                if (val) {
-                    myData.score = Math.max(myData.score, parseInt(val.score) || 0);
-                    myData.games = Math.max(myData.games, parseInt(val.games) || 0);
-                    document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score}分 / 答對 ${myData.games} 次)`;
-                    saveLocal();
-                }
-            })
-            .catch(err => { console.log("雲端靜默讀取跳過，使用本地數據"); });
+        // 移至非阻塞區塊，在完全不干擾畫面的情況下於背景讀取雲端資料
+        setTimeout(function() {
+            fetch(`${dbRestUrl}/${user}.json`)
+                .then(res => res.json())
+                .then(val => {
+                    if (val) {
+                        myData.score = Math.max(myData.score, parseInt(val.score) || 0);
+                        myData.games = Math.max(myData.games, parseInt(val.games) || 0);
+                        document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score}分 / 答對 ${myData.games} 次)`;
+                        saveLocal();
+                    }
+                })
+                .catch(err => { console.log("雲端靜默讀取跳過"); });
+        }, 50);
     }
 
     function start() {
@@ -180,18 +180,19 @@
             alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！`);
             start();
 
-            // 背景默默存回雲端
-            fetch(`${dbRestUrl}/${user}.json`, {
-                method: 'PUT',
-                body: JSON.stringify(myData)
-            }).catch(e => { console.log("雲端同步儲存失敗"); });
+            // 在背景寫入，不拖慢遊戲提示框彈出速度
+            setTimeout(function() {
+                fetch(`${dbRestUrl}/${user}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify(myData)
+                }).catch(e => { console.log("雲端寫入失敗"); });
+            }, 10);
         } else {
             let next = Math.max(0, 100 - count * 5);
             document.getElementById("pnote").innerText = `💡 目前本次答對可得：${next} 分`;
         }
     }
 
-    // 處理 Enter 鍵提交
     function checkEnter(e) {
         if (e.key === "Enter") goguess();
     }
@@ -203,7 +204,7 @@
         
         fetch(`${dbRestUrl}.json`)
             .then(res => {
-                if (!res.ok) throw new Error("Network Response Blocked");
+                if (!res.ok) throw new Error("Blocked");
                 return res.json();
             })
             .then(allData => {
