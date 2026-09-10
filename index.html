@@ -64,7 +64,6 @@
 </div>
 
 <script>
-    // 獨立的網路請求端點
     const dbRestUrl = "https://firebaseio.com";
 
     let user = "";
@@ -97,10 +96,10 @@
     }
 
     function loadLocal() {
-        let all = JSON.parse(localStorage.getItem('1a2b_hybrid_players')) || {};
+        let all = JSON.parse(localStorage.getItem('1a2b_final_players')) || {};
         if (all[user]) {
             myData.score = parseInt(all[user].score) || 0;
-            myData.games = parseInt(all[user].games) || 0;
+            myData.games = parseInt(all[user].games) || 0; // 🛠️ 語法Bug已修正：移除了多餘的all=
         } else {
             myData.score = 0; 
             myData.games = 0;
@@ -108,9 +107,9 @@
     }
 
     function saveLocal() {
-        let all = JSON.parse(localStorage.getItem('1a2b_hybrid_players')) || {};
+        let all = JSON.parse(localStorage.getItem('1a2b_final_players')) || {};
         all[user] = myData;
-        localStorage.setItem('1a2b_hybrid_players', JSON.stringify(all));
+        localStorage.setItem('1a2b_final_players', JSON.stringify(all));
     }
 
     function gologin() {
@@ -118,24 +117,24 @@
         if (!n) { alert("請輸入名字！"); return; }
         user = n.replace(/[\.\#\$\[\]\/]/g, ""); 
         
-        // 核心修正：100% 先進畫面，絕不進行任何同步阻斷
         loadLocal();
         document.getElementById("div1").classList.add("hidden");
         document.getElementById("div2").classList.remove("hidden");
         start();
 
-        // 在背景偷偷把本地分數跟雲端同步
-        fetch(`${dbRestUrl}/${user}.json`)
-            .then(res => res.json())
-            .then(val => {
-                if (val) {
-                    myData.score = Math.max(myData.score, parseInt(val.score) || 0);
-                    myData.games = Math.max(myData.games, parseInt(val.games) || 0);
-                    document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score}分 / 答對 ${myData.games} 次)`;
-                    saveLocal();
-                }
-            })
-            .catch(err => { console.log("背景靜默讀取跳過，改用本地繼續累積"); });
+        setTimeout(function() {
+            fetch(`${dbRestUrl}/${user}.json`)
+                .then(res => res.json())
+                .then(val => {
+                    if (val) {
+                        myData.score = Math.max(myData.score, parseInt(val.score) || 0);
+                        myData.games = Math.max(myData.games, parseInt(val.games) || 0);
+                        document.getElementById("pinfo").innerText = `👤 ${user} (${myData.score}分 / 答對 ${myData.games} 次)`;
+                        saveLocal();
+                    }
+                })
+                .catch(err => { console.log("雲端背景讀取跳過"); });
+        }, 50);
     }
 
     function start() {
@@ -179,11 +178,12 @@
             alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！`);
             start();
 
-            // 答對時背景非同步上傳雲端
-            fetch(`${dbRestUrl}/${user}.json`, {
-                method: 'PUT',
-                body: JSON.stringify(myData)
-            }).catch(e => { console.log("雲端同步儲存失敗"); });
+            setTimeout(function() {
+                fetch(`${dbRestUrl}/${user}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify(myData)
+                }).catch(e => { console.log("雲端寫入失敗"); });
+            }, 10);
         } else {
             let next = Math.max(0, 100 - count * 5);
             document.getElementById("pnote").innerText = `💡 目前本次答對可得：${next} 分`;
@@ -199,7 +199,6 @@
         document.getElementById("div3").classList.remove("hidden");
         document.getElementById("rlist").innerHTML = "正在串聯全球雲端排行榜...";
         
-        // 只有在點擊排行榜時，才向雲端資料庫撈資料，確保不影響登入
         fetch(`${dbRestUrl}.json`)
             .then(res => {
                 if (!res.ok) throw new Error("Blocked");
@@ -223,13 +222,12 @@
                 renderRank(arr);
             })
             .catch(err => {
-                // 如果被 Rules 拒絕或被網路擋住，則優雅降級顯示本地排行榜
                 showFallbackRank("⚠️ 雲端讀取遭拒（請確認 Firebase Rules）。目前展現本地排行：");
             });
     }
 
     function showFallbackRank(msg) {
-        let all = JSON.parse(localStorage.getItem('1a2b_hybrid_players')) || {};
+        let all = JSON.parse(localStorage.getItem('1a2b_final_players')) || {};
         let arr = [];
         for (let name in all) {
             arr.push({ name: name, score: all[name].score || 0, games: all[name].games || 0 });
@@ -250,3 +248,4 @@
             <div class="rank-item">
                 <span>
                     <span>${index + 1}. </span>
+                    <span class="rank-name">${item.name}</span>
