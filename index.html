@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 1A2B 腦力挑戰大賽</title>
+    <title>🧠 1A2B 腦力挑戰大賽 (無限挑戰扣分版)</title>
     <style>
         body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .box { background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 420px; text-align: center; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -25,7 +25,7 @@
     <!-- 畫面 1：登入 -->
     <div id="div1">
         <h2>🧠 1A2B 腦力挑戰大賽</h2>
-        <p style="font-size:13px; color:#e91e63; font-weight:bold;">📢 提示：輸入曾用過的名字，分數會繼續累積喔！</p>
+        <p style="font-size:13px; color:#e91e63; font-weight:bold;">📢 提示：輸入名字即可進入，每關可猜無限次，多猜一次扣 5 分！</p>
         <input type="text" id="realname" placeholder="例如：豪 / 冠宇">
         <button onclick="gologin()">進入遊戲</button>
     </div>
@@ -38,7 +38,7 @@
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="font-size:12px; color:#777; text-align: left;">規則：數字包含 0-9，數字不重複。</span>
-            <span id="datetag" class="date-tag">無限挑戰版</span>
+            <span id="datetag" class="date-tag">無限挑戰模式</span>
         </div>
         <p id="pnote" style="color:#ff5722; font-weight:bold;">目前本次答對可得：100 分</p>
         
@@ -69,14 +69,13 @@
     let count = 0;
     let myData = { score: 0, games: 0 };
 
-    // 🛠️ 修改：移除依據日期生成邏輯，改為「完全随機生成 4 個不重複數字」
     function generateRandomNumber() {
         let digits = ['0','1','2','3','4','5','6','7','8','9'];
         let result = [];
         for (let i = 0; i < 4; i++) {
             let randIndex = Math.floor(Math.random() * digits.length);
             result.push(digits[randIndex]);
-            digits.splice(randIndex, 1); // 抽出後移除，確保不重複
+            digits.splice(randIndex, 1); 
         }
         return result.join('');
     }
@@ -93,7 +92,7 @@
     }
 
     function saveLocal() {
-        let all = JSON.parse(localStorage.getItem('1a2b_pure_local_players')) || {}; // 🛠️ 修正原始碼中 Key 名稱不一致的 Bug
+        let all = JSON.parse(localStorage.getItem('1a2b_pure_local_players')) || {};
         all[user] = myData;
         localStorage.setItem('1a2b_pure_local_players', JSON.stringify(all));
     }
@@ -110,7 +109,7 @@
     }
 
     function start() {
-        ans = generateRandomNumber(); // 🛠️ 每次過關或重新開始時，都抓取全新隨機數字
+        ans = generateRandomNumber(); 
         count = 0;
         document.getElementById("htable").innerHTML = "";
         document.getElementById("inputnum").value = "";
@@ -141,14 +140,16 @@
         document.getElementById("inputnum").value = "";
 
         if (a === 4) {
+            // 🛠️ 核心修改：恢復分數保持倒扣邏輯，每多猜一次扣 5 分，最低到 0 分
             let s = Math.max(0, 100 - (count - 1) * 5);
             myData.score += s;
             myData.games += 1;
             saveLocal();
             
-            alert(`🎉 恭喜答對！今天的答案就是 ${ans}\n獲得 ${s} 分！即將刷新下一題！`);
-            start(); // 🛠️ 答對後自動重置題目與計數，進入無限挑戰循環
+            alert(`🎉 恭喜答對！答案就是 ${ans}\n獲得 ${s} 分！點擊確定立刻挑戰下一題！`);
+            start(); 
         } else {
+            // 🛠️ 核心修改：即時在畫面上更新下一次猜對可得的分數
             let next = Math.max(0, 100 - count * 5);
             document.getElementById("pnote").innerText = `💡 目前本次答對可得：${next} 分`;
         }
