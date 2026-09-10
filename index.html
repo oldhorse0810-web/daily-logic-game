@@ -43,7 +43,8 @@
         <p id="pnote" style="color:#ff5722; font-weight:bold;">目前本次答對可得：100 分</p>
         
         <div style="display:flex; gap:8px;">
-            <input type="text" id="inputnum" maxlength="4" placeholder="輸入 4 位不重複數字" style="flex:2; margin:0;">
+            <!-- 核心修正：將鍵盤事件綁定移到行內，徹底消除因元素隱藏導致載入失敗的錯誤 -->
+            <input type="text" id="inputnum" maxlength="4" placeholder="輸入 4 位不重複數字" style="flex:2; margin:0;" onkeyup="checkEnter(event)">
             <button onclick="goguess()" style="flex:1; margin:0; background-color:#28a745;">猜！</button>
         </div>
         
@@ -64,7 +65,7 @@
 </div>
 
 <script>
-    // 採用原生 REST API 端點，完全不需要任何外部第三方 SDK 腳本，封死因網路被阻擋而死鎖的漏洞
+    // 使用瀏覽器內建原生 API，不引用任何外部第三方可能壞掉的 SDK
     const dbRestUrl = "https://firebaseio.com";
 
     let user = "";
@@ -118,13 +119,13 @@
         if (!n) { alert("請輸入名字！"); return; }
         user = n.replace(/[\.\#\$\[\]\/]/g, ""); 
         
-        // 核心修正：點擊立刻秒切畫面，保證不論網路雲端狀況如何，100% 先進遊戲
+        // 優先完成介面切換，保證不論網路雲端狀況如何，100% 先進遊戲
         loadLocal();
         document.getElementById("div1").classList.add("hidden");
         document.getElementById("div2").classList.remove("hidden");
         start();
 
-        // 背景異步請求雲端 API，若不通或被擋就採用本地數據繼續玩
+        // 背景向雲端要求資料
         fetch(`${dbRestUrl}/${user}.json`)
             .then(res => res.json())
             .then(val => {
@@ -135,7 +136,7 @@
                     saveLocal();
                 }
             })
-            .catch(err => { console.log("雲端靜默讀取跳過，改採本地單機運作模式"); });
+            .catch(err => { console.log("雲端靜默讀取跳過，使用本地數據"); });
     }
 
     function start() {
@@ -190,9 +191,10 @@
         }
     }
 
-    document.getElementById("inputnum").addEventListener("keyup", function(e) {
+    // 處理 Enter 鍵提交
+    function checkEnter(e) {
         if (e.key === "Enter") goguess();
-    });
+    }
 
     function gorank() {
         document.getElementById("div2").classList.add("hidden");
@@ -201,7 +203,7 @@
         
         fetch(`${dbRestUrl}.json`)
             .then(res => {
-                if (!res.ok) throw new Error("Rules HTTP Blocked");
+                if (!res.ok) throw new Error("Network Response Blocked");
                 return res.json();
             })
             .then(allData => {
@@ -247,4 +249,3 @@
                 <span>
                     <span>${index + 1}. </span>
                     <span class="rank-name">${item.name}</span>
-                    <span class="rank-games">(答對 ${item.games} 次)</span>
